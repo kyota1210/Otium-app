@@ -1,0 +1,108 @@
+﻿# A5:ER FORMAT:19
+# A5:ER ENCODING:UTF8
+# A5:ER Mk-1 Copyright © 2007 m.matsubara
+# A5:SQL Mk-2 Version 2.20.4 Copyright © 1997 - 2025 m.matsubara
+#  https://a5m2.mmatsubara.com
+
+[Manager]
+ProjectName=
+Author=
+MaxEntityRowShow=1000
+ReadOnlyRecommend=0
+Page=Main
+PageInfo="Main",7,"A3Landscape",$FFFFFF
+LogicalView=1
+DecodeDomain=0
+ViewModePageIndividually=1
+ViewMode=7
+ViewFormat=0
+UseNondependenceDashLine=0
+FontName=Tahoma
+FontSize=6
+PaperSize=A4Landscape
+HeaderLeft=
+HeaderCenter=
+HeaderRight=
+FooterLeft=
+FooterCenter=
+FooterRight=
+ShowPageoutRelation=1
+RDBMSType=6
+RDBMSTypeName=MySQL
+DefaultPkName=%0:s_PKC
+DefaultPkIndexName=%0:s_PKI
+DefaultIndexName=%0:s_IX%1:d
+DefaultFkName=%0:s_FK%1:d
+SqlSeparator=0
+UpperCaseKeyword=0
+ShowTag=1
+ShowCommonAttributes=0
+BugFixEntityWidth=1
+
+[Entity]
+PName=users
+LName=users
+Comment=
+TableInnerOption=
+TableOption=
+Page=MAIN
+Left=50
+Top=50
+Field="id","id","int auto_increment","NOT NULL",0,"","",$FFFFFFFF,""
+Field="メールアドレス","email","varchar(255)","NOT NULL",,"","",$FFFFFFFF,""
+Field="ユーザー名","user_name","varchar(100)",,,"","",$FFFFFFFF,""
+Field="パスワードハッシュ","password_hash","varchar(255)","NOT NULL",,"","",$FFFFFFFF,""
+Field="登録日時","created_at","DATETIME","NOT NULL",,"CURRENT_TIMESTAMP","",$FFFFFFFF,""
+Index=email=2,email
+EffectMode=None
+Color=$000000
+BkColor=$D1D1FF
+ModifiedDateTime=20251207093409
+Position="MAIN",50,50,514,165
+ZOrder=-1
+
+[Entity]
+PName=records
+LName=レコード
+Comment=
+TableInnerOption=
+TableOption=
+Page=Main
+Left=50
+Top=350
+Field="id","id","int auto_increment","NOT NULL",0,"","",$FFFFFFFF,""
+Field="ユーザーID","user_id","BIGINT","NOT NULL",,"","",$000000FF,""
+Field="タイトル","title","varchar(255)",,,"","",$FFFFFFFF,""
+Field="作成日","date_logged","DATE","NOT NULL",,"","",$FFFFFFFF,""
+Field="本文","description","TEXT",,,"","",$FFFFFFFF,""
+Field="登録日時","created_at","DATETIME","NOT NULL",,"CURRENT_TIMESTAMP","",$FFFFFFFF,""
+Field="更新日時","updated_at","DATETIME",,,"","",$FFFFFFFF,""
+EffectMode=None
+Color=$000000
+BkColor=$D1D1FF
+ModifiedDateTime=20251207103058
+Position="Main",50,350,429,180
+ZOrder=0
+
+[Relation]
+Entity1=users
+Entity2=records
+RelationType1=2
+RelationType2=3
+Fields1=id
+Fields2=user_id
+Cardinarity1=
+Cardinarity2=
+Position="MAIN",0,650,9350,779,R,R,""
+Dependence=0
+Caption=
+PName=
+LineColor=$00808000
+ModifiedDateTime=20251207093533
+LineMode=0
+Bar1=65
+Bar2=935
+Bar3=78
+TermPos1=R
+TermPos2=R
+ZOrder=1

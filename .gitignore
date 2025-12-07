@@ -1,0 +1,20 @@
+# otium-app/.gitignore
+
+# --------------------------
+# Node.js 共通の設定
+# --------------------------
+node_modules
+npm-debug.log
+.env
+.DS_Store
+
+# client-app のビルド結果
+client-app/web-build/
+client-app/.expo/
+client-app/build/
+client-app/dist/
+
+# server-app のビルド結果
+server-app/dist/
+
+
