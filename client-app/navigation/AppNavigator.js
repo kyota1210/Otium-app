@@ -1,6 +1,8 @@
 import * as React from 'react';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Text, View, ActivityIndicator, StyleSheet, Button } from 'react-native';
+import { Text, View, ActivityIndicator, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/AuthContext';
 
 // 画面インポート
@@ -8,48 +10,82 @@ import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
 import RecordListScreen from '../screens/RecordListScreen';
 import CreateRecordScreen from '../screens/CreateRecordScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import ThreadScreen from '../screens/ThreadScreen';
+// ↓ 追加
+import RecordDetailScreen from '../screens/RecordDetailScreen';
 
 const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
 
-// 認証済みユーザー向けの画面群
-const AppStack = () => (
-    <Stack.Navigator>
-      <Stack.Screen 
-          name="Records" 
-          component={RecordListScreen} 
-          options={({ navigation }) => ({ 
-              title: 'レコード一覧',
-              // 右上に作成ボタンを配置
-              headerRight: () => (
-                  <Button
-                      onPress={() => navigation.navigate('CreateRecord')}
-                      title="追加"
-                  />
-              ),
-          })}
+// ------------------------------------------------
+// メインのタブナビゲーション（ログイン後の画面）
+// ------------------------------------------------
+const MainTabNavigator = () => {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          if (route.name === 'Home') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Create') {
+            iconName = focused ? 'add-circle' : 'add-circle-outline';
+          } else if (route.name === 'Thread') {
+            iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
+          } else if (route.name === 'MyPage') {
+            iconName = focused ? 'person' : 'person-outline';
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: '#007AFF', // アクティブな色（青）
+        tabBarInactiveTintColor: 'gray',  // 非アクティブな色
+        headerShown: true,               // ヘッダーを表示するかどうか
+      })}
+    >
+      <Tab.Screen 
+        name="Home" 
+        component={RecordListScreen} 
+        options={{ title: 'ホーム' }} 
       />
-      <Stack.Screen 
-          name="CreateRecord" 
-          component={CreateRecordScreen} 
-          options={{ title: '新しい記録を作成' }} 
+      <Tab.Screen 
+        name="Create" 
+        component={CreateRecordScreen} 
+        options={{ title: '作成' }} 
       />
-    </Stack.Navigator>
+      <Tab.Screen 
+        name="Thread" 
+        component={ThreadScreen} 
+        options={{ title: 'スレッド' }} 
+      />
+      <Tab.Screen 
+        name="MyPage" 
+        component={ProfileScreen} 
+        options={{ title: 'マイページ' }} 
+      />
+    </Tab.Navigator>
   );
+};
+
+// ------------------------------------------------
 // 未認証ユーザー向けの画面群
+// ------------------------------------------------
 const AuthStack = () => (
     <Stack.Navigator>
-    {/* ログインとサインアップ画面をここに定義 */}
-    <Stack.Screen name="Login" component={LoginScreen} options={{ title: 'ログイン' }} />
-    <Stack.Screen name="Signup" component={SignupScreen} options={{ title: '新規登録' }} />
+      <Stack.Screen name="Login" component={LoginScreen} options={{ title: 'ログイン' }} />
+      <Stack.Screen name="Signup" component={SignupScreen} options={{ title: '新規登録' }} />
     </Stack.Navigator>
 );
 
-// メインナビゲーター：認証状態によってスタックを切り替える
+// ------------------------------------------------
+// ルートナビゲーター
+// ------------------------------------------------
 const AppNavigator = () => {
-  const { isLoading, userToken } = React.useContext(AuthContext); // 認証状態を取得
+  const { isLoading, userToken } = React.useContext(AuthContext);
 
   if (isLoading) {
-    // 起動時のチェック中はローディング画面を表示
     return (
       <View style={styles.loadingScreen}>
         <ActivityIndicator size="large" color="#007AFF" />
@@ -59,12 +95,24 @@ const AppNavigator = () => {
   }
   
   return (
+    // Stack.Navigator で全体を包み、認証状態によって中身を切り替える
+    // ログイン後は TabNavigator を表示する
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {userToken ? (
-        // トークンがあればAppStackを表示
-        <Stack.Screen name="App" component={AppStack} />
+        <>
+          <Stack.Screen name="Main" component={MainTabNavigator} />
+          {/* ↓ 追加: 詳細画面 */}
+          <Stack.Screen 
+            name="RecordDetail" 
+            component={RecordDetailScreen} 
+            options={{ 
+              headerShown: true, 
+              title: '詳細',
+              headerBackTitleVisible: false 
+            }} 
+          />
+        </>
       ) : (
-        // トークンがなければAuthStack（ログイン/サインアップ）を表示
         <Stack.Screen name="Auth" component={AuthStack} />
       )}
     </Stack.Navigator>
