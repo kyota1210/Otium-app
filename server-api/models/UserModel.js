@@ -1,0 +1,28 @@
+const db = require('../db');
+
+class UserModel {
+    /**
+     * メールアドレスでユーザーを検索
+     * @param {string} email 
+     */
+    static async findByEmail(email) {
+        const sql = 'SELECT id, password_hash, user_name, email FROM users WHERE email = ?';
+        const [rows] = await db.query(sql, [email]);
+        return rows[0]; // ユーザーが見つかればオブジェクト、なければundefinedを返す
+    }
+
+    /**
+     * 新しいユーザーを作成
+     * @param {Object} userData
+     * @param {string} userData.email
+     * @param {string} userData.userName
+     * @param {string} userData.passwordHash
+     */
+    static async create({ email, userName, passwordHash }) {
+        const sql = 'INSERT INTO users (email, user_name, password_hash) VALUES (?, ?, ?)';
+        const [result] = await db.query(sql, [email, userName, passwordHash]);
+        return result.insertId;
+    }
+}
+
+module.exports = UserModel;

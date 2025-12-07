@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const db = require('./db'); // データベース接続プールをインポート
+const UserModel = require('./models/UserModel'); // モデルを読み込み
 
 // JWTの秘密鍵は.envから取得
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -19,15 +19,18 @@ router.post('/signup', async (req, res) => {
 
     try {
         // パスワードをハッシュ化
-        const passwordHash = await bcrypt.hash(password, 10); 
-        const [result] = await db.query(
-            'INSERT INTO users (email, user_name, password_hash) VALUES (?, ?, ?)',
-            [email, user_name, passwordHash]
-        );
+        const passwordHash = await bcrypt.hash(password, 10);
+        
+        // SQLはModelに任せる
+        const userId = await UserModel.create({
+            email,
+            userName: user_name,
+            passwordHash
+        });
 
         res.status(201).json({ 
             message: 'ユーザー登録が完了しました。',
-            userId: result.insertId
+            userId
         });
     } catch (error) {
         // MySQLのエラーコード 'ER_DUP_ENTRY' はメールアドレス重複を意味します
@@ -47,14 +50,10 @@ router.post('/login', async (req, res) => {
 
     try {
         // メールアドレスでユーザーを検索
-        const [users] = await db.query(
-            'SELECT id, password_hash, user_name FROM users WHERE email = ?',
-            [email]
-        );
+        const user = await UserModel.findByEmail(email);
 
-        const user = users[0];
         if (!user) {
-            // ユーザーが見つからない場合は、セキュリティのため「パスワードが違う」と同じエラーを返す
+            // ユーザーが見つからない場合
             return res.status(401).json({ message: 'メールアドレスまたはパスワードが正しくありません。' });
         }
 
@@ -67,9 +66,9 @@ router.post('/login', async (req, res) => {
 
         // 認証成功: トークン（JWT）を生成
         const token = jwt.sign(
-            { id: user.id, email: user.email },
+            { id: user.id, email: user.email }, // user.emailが必要な場合があるため含めておく
             JWT_SECRET,
-            { expiresIn: '1d' } // トークンの有効期限を1日間に設定
+            { expiresIn: '1d' }
         );
 
         // トークンとユーザー情報をクライアントに返す

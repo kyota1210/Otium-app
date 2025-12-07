@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('./db');
+const RecordModel = require('./models/RecordModel');
 const auth = require('./middleware/auth');
 
 // すべてのルートで認証ミドルウェアを適用
@@ -22,14 +22,16 @@ router.post('/', async (req, res) => {
     }
 
     try {
-        const [result] = await db.query(
-            'INSERT INTO records (user_id, title, description, date_logged, invalidation_flag) VALUES (?, ?, ?, ?, 0)',
-            [user_id, title, description, date_logged]
-        );
+        const recordId = await RecordModel.create({
+            userId: user_id,
+            title,
+            description,
+            dateLogged: date_logged
+        });
 
         res.status(201).json({ 
             message: '記録が作成されました。',
-            recordId: result.insertId
+            recordId
         });
     } catch (error) {
         console.error('記録作成エラー:', error);
@@ -45,12 +47,7 @@ router.get('/', async (req, res) => {
     const user_id = req.user.id; // 自分のIDのみを使用
 
     try {
-        // 特定の user_id に紐づく記録のみを取得
-        const [records] = await db.query(
-            'SELECT id, title, description, created_at FROM records WHERE user_id = ? AND invalidation_flag = 0 ORDER BY created_at DESC',
-            [user_id]
-        );
-
+        const records = await RecordModel.findAllByUserId(user_id);
         res.status(200).json(records);
     } catch (error) {
         console.error('記録取得エラー:', error);
@@ -67,18 +64,13 @@ router.put('/:id', async (req, res) => {
     const { title, description } = req.body;
     const user_id = req.user.id;
 
-    if (!title || !date_logged) {
-        return res.status(400).json({ message: 'タイトルと日付は必須です。' });
-    }
+    // バリデーション（必要に応じて追加）
+    // 例: if (!title) return res.status(400)...
 
     try {
-        const [result] = await db.query(
-            'UPDATE records SET title=?, description=?, WHERE id=? AND user_id=?',
-            [title, description, id, user_id]
-        );
+        const success = await RecordModel.update(id, user_id, { title, description });
 
-        if (result.affectedRows === 0) {
-            // 記録が存在しないか、他のユーザーの記録を更新しようとした場合
+        if (!success) {
             return res.status(404).json({ message: '記録が見つからないか、更新権限がありません。' });
         }
 
@@ -98,12 +90,8 @@ router.delete('/:id', async (req, res) => {
     const user_id = req.user.id;
 
     try {
-        const [result] = await db.query(
-            'UPDATE records SET invalidation_flag=1, delete_at=now() WHERE id=? AND user_id=?',
-            [id, user_id]
-        );
-
-        if (result.affectedRows === 0) {
+        const success = await RecordModel.softDelete(id, user_id);
+        if (!success) {
             return res.status(404).json({ message: '記録が見つからないか、削除権限がありません。' });
         }
 

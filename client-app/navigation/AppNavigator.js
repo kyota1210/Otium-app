@@ -9,19 +9,6 @@ import SignupScreen from '../screens/SignupScreen';
 import RecordListScreen from '../screens/RecordListScreen';
 import CreateRecordScreen from '../screens/CreateRecordScreen';
 
-// プレースホルダー画面
-// const RecordListScreen = () => (
-//     <View style={{ flex: 1, justifyContent: 'center' }}>
-//         <Text>記録一覧画面 (AppStack)</Text>
-//     </View>
-// );
-// const LoginScreen = () => (
-//     <View style={{ flex: 1, justifyContent: 'center' }}>
-//         <Text>ログイン画面 (AuthStack)</Text>
-//     </View>
-// );
-// // SignupScreenもここで定義するか、LoginScreenと同じものを一時的に使用
-
 const Stack = createNativeStackNavigator();
 
 // 認証済みユーザー向けの画面群
