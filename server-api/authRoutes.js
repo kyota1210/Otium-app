@@ -18,6 +18,12 @@ router.post('/signup', async (req, res) => {
     }
 
     try {
+        // 既存ユーザーのチェック
+        const existingUser = await UserModel.findByEmail(email);
+        if (existingUser) {
+            return res.status(409).json({ message: 'このメールアドレスは既に登録されています。' });
+        }
+
         // パスワードをハッシュ化
         const passwordHash = await bcrypt.hash(password, 10);
         

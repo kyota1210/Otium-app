@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://192.168.1.148:3000/api'; 
+import * as SecureStore from 'expo-secure-store';
+import { API_BASE_URL } from '../config';
 
 // ユーザー登録（サインアップ）API
 export const signup = async ({ email, user_name, password }) => {

@@ -1,12 +1,14 @@
 import { AuthContext } from '../context/AuthContext';
 import { useContext, useCallback } from 'react';
-
-const API_BASE_URL = 'http://192.168.1.148:3000/api'; 
+import axios from 'axios';
+import { getToken } from './auth';
+import { API_BASE_URL } from '../config';
+import { Alert } from 'react-native';
 
 // 共通APIクライアントを返すフック
 export const useApiClient = () => {
-    // AuthContextから現在のトークンを取得
-    const { userToken } = useContext(AuthContext);
+    // AuthContextから現在のトークンと認証機能を取得
+    const { userToken, authContext } = useContext(AuthContext);
 
     // 共通の処理をラップしたfetch関数を返す
     const apiFetch = useCallback(async (endpoint, options = {}) => {
@@ -20,25 +22,47 @@ export const useApiClient = () => {
             headers['Authorization'] = `Bearer ${userToken}`;
         }
         
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-            ...options,
-            headers: headers,
-            // GET/DELETE以外はbodyをJSON文字列化
-            body: options.body ? JSON.stringify(options.body) : undefined,
-        });
+        try {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                ...options,
+                headers: headers,
+                // GET/DELETE以外はbodyをJSON文字列化
+                body: options.body ? JSON.stringify(options.body) : undefined,
+            });
 
-        // 認証エラー (401) の場合は、AuthContextでログアウト処理を走らせることも可能ですが、
-        // 今回はシンプルにエラーとして処理します。
-        
-        const data = await response.json();
+            const data = await response.json();
 
-        if (!response.ok) {
-            // サーバーからのエラーメッセージを取得
-            throw new Error(data.message || 'APIリクエストに失敗しました。');
+            if (!response.ok) {
+                // 401エラー（未認証）の場合の処理
+                if (response.status === 401) {
+                    Alert.alert(
+                        "認証エラー",
+                        "セッションの有効期限が切れました。再度ログインしてください。",
+                        [
+                            { 
+                                text: "OK", 
+                                onPress: () => {
+                                    // OKボタン押下時にログアウト処理を実行
+                                    authContext.signOut();
+                                }
+                            }
+                        ]
+                    );
+                    // エラーを投げて、呼び出し元で不要な処理が続かないようにする
+                    throw new Error('Unauthorized');
+                }
+
+                // サーバーからのエラーメッセージを取得
+                throw new Error(data.message || 'APIリクエストに失敗しました。');
+            }
+
+            return data;
+        } catch (error) {
+            // Unauthorizedエラーはすでにハンドリングしているので再スロー
+            // それ以外もそのままスロー
+            throw error;
         }
-
-        return data;
-    }, [userToken]);
+    }, [userToken, authContext]);
 
     return { apiFetch };
 };
