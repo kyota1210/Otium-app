@@ -4,6 +4,7 @@ import { StyleSheet, Text, View, FlatList, Alert, ActivityIndicator, TouchableOp
 import { Ionicons } from '@expo/vector-icons';
 import { useRecordsApi } from '../api/records';
 import { useFocusEffect } from '@react-navigation/native';
+import { getImageUrl } from '../utils/imageHelper';
 
 export default function RecordListScreen({ navigation }) {
     const [records, setRecords] = useState([]);
@@ -67,6 +68,8 @@ export default function RecordListScreen({ navigation }) {
                     const date = new Date(item.date_logged);
                     const year = date.getFullYear(); // 西暦
                     const monthDay = `${date.getMonth() + 1}/${date.getDate()}`; // 月日
+                    
+                    const imageUrl = getImageUrl(item.image_url);
 
                     return (
                         <TouchableOpacity 
@@ -75,8 +78,8 @@ export default function RecordListScreen({ navigation }) {
                         >
                             {/* 左半分: 画像 */}
                             <View style={styles.leftContainer}>
-                                {item.image_url ? (
-                                    <Image source={{ uri: item.image_url }} style={styles.image} />
+                                {imageUrl ? (
+                                    <Image source={{ uri: imageUrl }} style={styles.image} />
                                 ) : (
                                     <View style={styles.placeholderImage}>
                                         <Ionicons name="image" size={32} color="#fff" />

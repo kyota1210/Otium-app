@@ -13,9 +13,15 @@ export const useApiClient = () => {
     // 共通の処理をラップしたfetch関数を返す
     const apiFetch = useCallback(async (endpoint, options = {}) => {
         const headers = {
-            'Content-Type': 'application/json',
             ...options.headers,
         };
+
+        // FormDataの場合はContent-Typeを自動設定させるため、ここでの指定はスキップ
+        const isFormData = options.body instanceof FormData;
+        
+        if (!isFormData) {
+            headers['Content-Type'] = 'application/json';
+        }
 
         // ログイン済みの場合はAuthorizationヘッダーを追加
         if (userToken) {
@@ -23,11 +29,12 @@ export const useApiClient = () => {
         }
         
         try {
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            const url = `${API_BASE_URL}${endpoint}`;
+            const response = await fetch(url, {
                 ...options,
                 headers: headers,
-                // GET/DELETE以外はbodyをJSON文字列化
-                body: options.body ? JSON.stringify(options.body) : undefined,
+                // GET/DELETE以外かつFormDataでない場合はJSON文字列化
+                body: (options.body && !isFormData) ? JSON.stringify(options.body) : options.body,
             });
 
             const data = await response.json();

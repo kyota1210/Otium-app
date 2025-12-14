@@ -11,6 +11,10 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(cors());
 
+// 画像ファイルの公開設定
+// http://localhost:3000/uploads/filename.jpg でアクセス可能になります
+app.use('/uploads', express.static('uploads'));
+
 // 接続テストルート
 app.get('/api/test-db', async (req, res) => {
     try {

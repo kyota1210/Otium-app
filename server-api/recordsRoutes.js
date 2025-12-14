@@ -2,6 +2,22 @@ const express = require('express');
 const router = express.Router();
 const RecordModel = require('./models/RecordModel');
 const auth = require('./middleware/auth');
+const multer = require('multer');
+const path = require('path');
+
+// Multerの設定
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/'); // 保存先
+    },
+    filename: function (req, file, cb) {
+        // ファイル名重複防止のためタイムスタンプを付与
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ storage: storage });
 
 // すべてのルートで認証ミドルウェアを適用
 router.use(auth);
@@ -10,10 +26,21 @@ router.use(auth);
 // 1. 記録の作成 (Create)
 // POST /api/records
 // ------------------------------------------------
-router.post('/', async (req, res) => {
-    console.log('記録登録てすと');
-    console.log(req.body);
-    console.log(req);
+// Multerのエラーハンドリングを追加するためにラッパー関数を使用
+router.post('/', (req, res, next) => {
+    upload.single('image')(req, res, (err) => {
+        if (err) {
+            console.error('Multer Error:', err);
+            return res.status(400).json({ message: '画像のアップロードに失敗しました。', error: err.message });
+        }
+        next();
+    });
+}, async (req, res) => {
+    // req.body が undefined または null の場合のガード
+    if (!req.body) {
+        return res.status(400).json({ message: 'リクエストデータが読み取れませんでした。' });
+    }
+
     const { title, description, date_logged } = req.body;
     const user_id = req.user.id;
 
@@ -21,17 +48,29 @@ router.post('/', async (req, res) => {
         return res.status(400).json({ message: 'タイトルと日付は必須です。' });
     }
 
+    // 画像パスの生成（相対パス）
+    // DBには 'uploads/filename.jpg' の形式で保存する
+    // クライアント側で表示する際に、ベースURLと結合する
+    let imageUrl = null;
+    if (req.file) {
+        // req.file.path は 'uploads\filename.jpg' (Windows) のようになる場合があるため
+        // スラッシュに統一して保存するのが望ましい
+        imageUrl = `uploads/${req.file.filename}`;
+    }
+
     try {
         const recordId = await RecordModel.create({
             userId: user_id,
             title,
             description,
-            dateLogged: date_logged
+            dateLogged: date_logged,
+            imageUrl
         });
 
         res.status(201).json({ 
             message: '記録が作成されました。',
-            recordId
+            recordId,
+            imageUrl // クライアントには保存した相対パスを返す
         });
     } catch (error) {
         console.error('記録作成エラー:', error);
@@ -63,9 +102,6 @@ router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const { title, description } = req.body;
     const user_id = req.user.id;
-
-    // バリデーション（必要に応じて追加）
-    // 例: if (!title) return res.status(400)...
 
     try {
         const success = await RecordModel.update(id, user_id, { title, description });

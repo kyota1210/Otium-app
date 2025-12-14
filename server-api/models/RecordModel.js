@@ -5,8 +5,9 @@ class RecordModel {
      * 特定ユーザーの全記録を取得
      */
     static async findAllByUserId(userId) {
+        // image_url も取得するように変更
         const sql = `
-            SELECT id, title, description, created_at, date_logged 
+            SELECT id, title, description, created_at, date_logged, image_url 
             FROM records 
             WHERE user_id = ? AND invalidation_flag = 0 
             ORDER BY created_at DESC
@@ -18,12 +19,13 @@ class RecordModel {
     /**
      * 新しい記録を作成
      */
-    static async create({ userId, title, description, dateLogged }) {
+    static async create({ userId, title, description, dateLogged, imageUrl }) {
+        // image_url を保存するように変更
         const sql = `
-            INSERT INTO records (user_id, title, description, date_logged, invalidation_flag) 
-            VALUES (?, ?, ?, ?, 0)
+            INSERT INTO records (user_id, title, description, date_logged, invalidation_flag, image_url) 
+            VALUES (?, ?, ?, ?, 0, ?)
         `;
-        const [result] = await db.query(sql, [userId, title, description, dateLogged]);
+        const [result] = await db.query(sql, [userId, title, description, dateLogged, imageUrl]);
         return result.insertId;
     }
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRecordsApi } from '../api/records';
+import { getImageUrl } from '../utils/imageHelper';
 
 export default function RecordDetailScreen({ route, navigation }) {
     const { record } = route.params;
@@ -38,13 +39,16 @@ export default function RecordDetailScreen({ route, navigation }) {
     const date = new Date(record.date_logged);
     const dateString = date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
 
+    // 画像パスの解決
+    const imageUrl = getImageUrl(record.image_url);
+
     return (
         <View style={styles.container}>
             <ScrollView contentContainerStyle={styles.content}>
                 {/* 画像があれば表示、なければプレースホルダー */}
                 <View style={styles.imageContainer}>
-                    {record.image_url ? (
-                        <Image source={{ uri: record.image_url }} style={styles.image} />
+                    {imageUrl ? (
+                        <Image source={{ uri: imageUrl }} style={styles.image} />
                     ) : (
                         <View style={styles.placeholderImage}>
                             <Ionicons name="image-outline" size={80} color="#ccc" />
