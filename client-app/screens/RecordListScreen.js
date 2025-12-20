@@ -1,16 +1,28 @@
 // AppStackのメイン画面
-import React, { useState, useCallback } from 'react';
-import { StyleSheet, Text, View, FlatList, Alert, ActivityIndicator, TouchableOpacity, Image } from 'react-native';
+import React, { useState, useCallback, useContext } from 'react';
+import { StyleSheet, Text, View, FlatList, Alert, ActivityIndicator, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRecordsApi } from '../api/records';
 import { useFocusEffect } from '@react-navigation/native';
 import { getImageUrl } from '../utils/imageHelper';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AuthContext } from '../context/AuthContext';
 
 export default function RecordListScreen({ navigation }) {
     const [records, setRecords] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedCategory, setSelectedCategory] = useState('all');
     const { fetchRecords } = useRecordsApi();
+    const { userInfo } = useContext(AuthContext);
+
+    // カテゴリのダミーデータ（後でAPIから取得）
+    const categories = [
+        { id: 'all', name: 'All', icon: 'apps' },
+        { id: 'cafe', name: 'Café', icon: 'cafe' },
+        { id: 'film', name: 'Film', icon: 'film' },
+        { id: 'daily', name: 'Daily', icon: 'calendar' },
+        { id: 'travel', name: 'Travel', icon: 'airplane' },
+    ];
 
     // 記録を取得する関数
     const loadRecords = useCallback(async () => {
@@ -61,6 +73,61 @@ export default function RecordListScreen({ navigation }) {
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
+            {/* トップナビゲーションバー */}
+            <View style={styles.topNavBar}>
+                <Text style={styles.appName}>Otium</Text>
+                <TouchableOpacity style={styles.notificationButton}>
+                    <Ionicons name="notifications-outline" size={24} color="#333" />
+                </TouchableOpacity>
+            </View>
+
+            {/* ユーザー情報ヘッダー */}
+            <View style={styles.userHeader}>
+                <View style={styles.userIconContainer}>
+                    <Ionicons name="person-circle-outline" size={85} color="#333" />
+                </View>
+                <View style={styles.userInfoText}>
+                    <Text style={styles.userNameText}>{userInfo?.user_name || 'ゲスト'}</Text>
+                    <Text style={styles.totalArchives}>Total Archives: {records.length}</Text>
+                </View>
+                
+                {/* カテゴリスクロールエリア */}
+                <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.categoryScrollContainer}
+                    contentContainerStyle={styles.categoryScrollContent}
+                >
+                    {categories.map((category) => (
+                        <TouchableOpacity
+                            key={category.id}
+                            style={[
+                                styles.categoryItem,
+                                selectedCategory === category.id && styles.categoryItemSelected
+                            ]}
+                            onPress={() => setSelectedCategory(category.id)}
+                        >
+                            <View style={[
+                                styles.categoryIconCircle,
+                                selectedCategory === category.id && styles.categoryIconCircleSelected
+                            ]}>
+                                <Ionicons 
+                                    name={category.icon} 
+                                    size={20} 
+                                    color={selectedCategory === category.id ? '#007AFF' : '#666'} 
+                                />
+                            </View>
+                            <Text style={[
+                                styles.categoryName,
+                                selectedCategory === category.id && styles.categoryNameSelected
+                            ]}>
+                                {category.name}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
+            </View>
+
             <FlatList
                 data={records}
                 keyExtractor={(item) => item.id.toString()}
@@ -121,6 +188,87 @@ const styles = StyleSheet.create({
     container: { 
         flex: 1, 
         backgroundColor: '#f5f5f5', // 背景色を少しグレーに
+    },
+    topNavBar: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingTop: 2,
+        paddingBottom: 0,
+        backgroundColor: '#fff',
+    },
+    appName: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    notificationButton: {
+        padding: 4,
+    },
+    userHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 6,
+        paddingTop: 0,
+        paddingBottom: 6,
+        backgroundColor: '#fff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#e0e0e0',
+    },
+    userIconContainer: {
+        marginRight: 8,
+    },
+    userInfoText: {
+        flex: 0,
+        marginRight: 8,
+    },
+    userNameText: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#333',
+        marginBottom: 2,
+    },
+    totalArchives: {
+        fontSize: 11,
+        color: '#888',
+        marginTop: 1,
+    },
+    categoryScrollContainer: {
+        flex: 1,
+        maxHeight: 90,
+    },
+    categoryScrollContent: {
+        alignItems: 'center',
+        paddingRight: 6,
+    },
+    categoryItem: {
+        alignItems: 'center',
+        marginHorizontal: 6,
+    },
+    categoryIconCircle: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: '#f0f0f0',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 2,
+        borderColor: 'transparent',
+    },
+    categoryIconCircleSelected: {
+        borderColor: '#007AFF',
+        backgroundColor: '#E8F4FF',
+    },
+    categoryName: {
+        fontSize: 10,
+        color: '#666',
+        marginTop: 4,
+        textAlign: 'center',
+    },
+    categoryNameSelected: {
+        color: '#007AFF',
+        fontWeight: '600',
     },
     center: { 
         flex: 1, 

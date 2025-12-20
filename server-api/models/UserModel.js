@@ -2,6 +2,16 @@ const db = require('../db');
 
 class UserModel {
     /**
+     * IDでユーザーを検索
+     * @param {number} id 
+     */
+    static async findById(id) {
+        const sql = 'SELECT id, user_name, email FROM users WHERE id = ?';
+        const [rows] = await db.query(sql, [id]);
+        return rows[0]; // ユーザーが見つかればオブジェクト、なければundefinedを返す
+    }
+
+    /**
      * メールアドレスでユーザーを検索
      * @param {string} email 
      */

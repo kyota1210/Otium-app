@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const UserModel = require('./models/UserModel'); // モデルを読み込み
+const auth = require('./middleware/auth'); // 認証ミドルウェア
 
 // JWTの秘密鍵は.envから取得
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -85,6 +86,33 @@ router.post('/login', async (req, res) => {
 
     } catch (error) {
         console.error('ログインエラー:', error);
+        res.status(500).json({ message: 'サーバーエラーが発生しました。' });
+    }
+});
+
+
+// ------------------------------------------------
+// GET /api/auth/me (ログイン中のユーザー情報を取得)
+// ------------------------------------------------
+router.get('/me', auth, async (req, res) => {
+    try {
+        // 認証ミドルウェアで req.user.id が設定されている
+        const user = await UserModel.findById(req.user.id);
+        
+        if (!user) {
+            return res.status(404).json({ message: 'ユーザーが見つかりません。' });
+        }
+
+        // パスワードハッシュを除外してユーザー情報を返す
+        res.status(200).json({
+            user: { 
+                id: user.id, 
+                user_name: user.user_name,
+                email: user.email
+            }
+        });
+    } catch (error) {
+        console.error('ユーザー情報取得エラー:', error);
         res.status(500).json({ message: 'サーバーエラーが発生しました。' });
     }
 });

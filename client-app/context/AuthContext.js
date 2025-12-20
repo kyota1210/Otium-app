@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useMemo } from 'react';
 import * as SecureStore from 'expo-secure-store';
-import { login, signup } from '../api/auth'; 
+import { login, signup, getUserInfo } from '../api/auth'; 
 
 export const AuthContext = createContext();
 
@@ -19,6 +19,19 @@ export const AuthProvider = ({ children }) => {
             let token;
             try {
                 token = await SecureStore.getItemAsync(TOKEN_KEY);
+                
+                if (token) {
+                    // トークンがある場合、ユーザー情報を取得
+                    try {
+                        const data = await getUserInfo(token);
+                        setUserInfo(data.user);
+                    } catch (error) {
+                        console.error('ユーザー情報取得エラー:', error);
+                        // トークンが無効な場合は削除
+                        await SecureStore.deleteItemAsync(TOKEN_KEY);
+                        token = null;
+                    }
+                }
             } catch (e) {
                 console.error('トークン読み込みエラー', e);
             }
