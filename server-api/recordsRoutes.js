@@ -44,9 +44,14 @@ router.post('/', (req, res, next) => {
     const { title, description, date_logged } = req.body;
     const user_id = req.user.id;
 
-    if (!title || !date_logged) {
-        return res.status(400).json({ message: 'タイトルと日付は必須です。' });
+    // 要件: 日付のみ必須
+    if (!date_logged) {
+        return res.status(400).json({ message: '日付は必須です。' });
     }
+
+    // タイトル未入力時はデフォルト値を設定
+    const recordTitle = typeof title === 'string' && title.trim() ? title : '無題の記録';
+    const recordDescription = typeof description === 'string' ? description : '';
 
     // 画像パスの生成（相対パス）
     // DBには 'uploads/filename.jpg' の形式で保存する
@@ -61,8 +66,8 @@ router.post('/', (req, res, next) => {
     try {
         const recordId = await RecordModel.create({
             userId: user_id,
-            title,
-            description,
+            title: recordTitle,
+            description: recordDescription,
             dateLogged: date_logged,
             imageUrl
         });

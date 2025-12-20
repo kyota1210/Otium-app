@@ -62,7 +62,7 @@ export default function CreateRecordScreen({ navigation }) {
         setLoading(true);
         try {
             await createRecord({ 
-                title: title || '無題の記録', 
+                title,
                 description, 
                 date_logged: dateLogged.toISOString().split('T')[0], 
                 imageUri 
@@ -120,16 +120,6 @@ export default function CreateRecordScreen({ navigation }) {
                 {/* 入力フォームエリア */}
                 <View style={styles.formSection}>
                     <View style={styles.inputGroup}>
-                        <Text style={styles.label}>タイトル</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="タイトルを入力"
-                            value={title}
-                            onChangeText={setTitle}
-                        />
-                    </View>
-
-                    <View style={styles.inputGroup}>
                         <Text style={styles.label}>日付 <Text style={styles.required}>*</Text></Text>
                         <TouchableOpacity 
                             style={styles.dateInputContainer} 
@@ -178,6 +168,16 @@ export default function CreateRecordScreen({ navigation }) {
                         )}
                     </View>
 
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>タイトル</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="タイトルを入力"
+                            value={title}
+                            onChangeText={setTitle}
+                        />
+                    </View>
+
                     {/* コメントエリア (flexで伸縮) */}
                     <View style={styles.commentGroup}>
                         <Text style={styles.label}>コメント</Text>
@@ -198,7 +198,7 @@ export default function CreateRecordScreen({ navigation }) {
                     disabled={loading}
                 >
                     <Text style={styles.createButtonText}>
-                        {loading ? "作成中..." : "記録を作成"}
+                        {loading ? "作成中..." : "作成する"}
                     </Text>
                     {!loading && <Ionicons name="checkmark-circle-outline" size={24} color="#fff" style={{ marginLeft: 8 }} />}
                 </TouchableOpacity>
