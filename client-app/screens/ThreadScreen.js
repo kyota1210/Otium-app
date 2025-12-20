@@ -1,12 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ThreadScreen = () => {
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <Text style={styles.text}>スレッド</Text>
             <Text style={styles.subText}>ここにはスレッド一覧が表示されます</Text>
-        </View>
+        </SafeAreaView>
     );
 };
 

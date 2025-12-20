@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRecordsApi } from '../api/records';
 import { useFocusEffect } from '@react-navigation/native';
 import { getImageUrl } from '../utils/imageHelper';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function RecordListScreen({ navigation }) {
     const [records, setRecords] = useState([]);
@@ -59,7 +60,7 @@ export default function RecordListScreen({ navigation }) {
     }
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <FlatList
                 data={records}
                 keyExtractor={(item) => item.id.toString()}
@@ -112,7 +113,7 @@ export default function RecordListScreen({ navigation }) {
                     </View>
                 )}
             />
-        </View>
+        </SafeAreaView>
     );
 }
 

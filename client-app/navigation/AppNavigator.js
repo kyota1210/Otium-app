@@ -25,45 +25,53 @@ const MainTabNavigator = () => {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
+        tabBarIcon: ({ focused, color }) => {
           let iconName;
 
           if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
+            // 「ホーム」→「ギャラリー」
+            iconName = focused ? 'images' : 'images-outline';
           } else if (route.name === 'Create') {
             iconName = focused ? 'add-circle' : 'add-circle-outline';
           } else if (route.name === 'Thread') {
             iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
           } else if (route.name === 'MyPage') {
-            iconName = focused ? 'person' : 'person-outline';
+            // 「マイページ」→「Insight」
+            iconName = focused ? 'analytics' : 'analytics-outline';
           }
 
-          return <Ionicons name={iconName} size={size} color={color} />;
+          // アイコンサイズを少し大きく（デフォルト24→30）
+          return <Ionicons name={iconName} size={30} color={color} />;
         },
         tabBarActiveTintColor: '#007AFF', // アクティブな色（青）
         tabBarInactiveTintColor: 'gray',  // 非アクティブな色
-        headerShown: true,               // ヘッダーを表示するかどうか
+        headerShown: false,              // タブ画面の上部タイトルバーを非表示
+        tabBarShowLabel: false,          // 下部メニュー名（ラベル）を非表示（アイコンのみ）
+        tabBarStyle: {
+          paddingTop: 10,                // 上部余白を追加してアイコンを中央に
+          paddingBottom: 10,             // 下部余白を追加してアイコンを中央に
+        },
       })}
     >
       <Tab.Screen 
         name="Home" 
         component={RecordListScreen} 
-        options={{ title: 'ホーム' }} 
+        options={{ title: 'ギャラリー' }} 
       />
       <Tab.Screen 
         name="Create" 
         component={CreateRecordScreen} 
-        options={{ title: '作成' }} 
+        options={{ title: '作成' }}
       />
       <Tab.Screen 
         name="Thread" 
         component={ThreadScreen} 
-        options={{ title: 'スレッド' }} 
+        options={{ title: 'スレッド' }}
       />
       <Tab.Screen 
         name="MyPage" 
         component={ProfileScreen} 
-        options={{ title: 'マイページ' }} 
+        options={{ title: 'Insight' }} 
       />
     </Tab.Navigator>
   );

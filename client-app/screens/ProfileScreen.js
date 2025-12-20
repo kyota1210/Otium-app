@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/AuthContext';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ProfileScreen = () => {
     const { authContext, userInfo } = useContext(AuthContext);
@@ -28,7 +29,7 @@ const ProfileScreen = () => {
     };
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             {/* ユーザー情報セクション */}
             <View style={styles.profileSection}>
                 <View style={styles.avatarContainer}>
@@ -43,7 +44,7 @@ const ProfileScreen = () => {
                 )}
                 
                 {!userInfo && (
-                    <Text style={styles.userName}>マイページ</Text>
+                    <Text style={styles.userName}>Insight</Text>
                 )}
             </View>
 
@@ -70,7 +71,7 @@ const ProfileScreen = () => {
                     <Text style={styles.logoutText}>ログアウト</Text>
                 </TouchableOpacity>
             </View>
-        </View>
+        </SafeAreaView>
     );
 };
 

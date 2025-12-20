@@ -4,8 +4,10 @@ import { useRecordsApi } from '../api/records';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function CreateRecordScreen({ navigation }) {
+    const insets = useSafeAreaInsets();
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     
@@ -87,123 +89,125 @@ export default function CreateRecordScreen({ navigation }) {
     });
 
     return (
-        <KeyboardAvoidingView 
-            style={styles.container} 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-        >
-            <ScrollView 
-                contentContainerStyle={styles.scrollContent}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
+        <SafeAreaView style={styles.container} edges={['top']}>
+            <KeyboardAvoidingView 
+                style={styles.container} 
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
             >
-                {/* 画像選択エリア (flexで伸縮) */}
-                <View style={styles.imageSection}>
-                    {imageUri ? (
-                        <View style={styles.imagePreviewContainer}>
-                            <Image source={{ uri: imageUri }} style={styles.imagePreview} />
-                            <TouchableOpacity 
-                                style={styles.removeImageButton} 
-                                onPress={() => setImageUri(null)}
-                            >
-                                <Ionicons name="close-circle" size={30} color="#FF3B30" />
-                            </TouchableOpacity>
-                        </View>
-                    ) : (
-                        <TouchableOpacity style={styles.imageSelectButton} onPress={pickImage}>
-                            <Ionicons name="camera" size={40} color="#007AFF" />
-                            <Text style={styles.imageSelectText}>写真を追加</Text>
-                        </TouchableOpacity>
-                    )}
-                </View>
-
-                {/* 入力フォームエリア */}
-                <View style={styles.formSection}>
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.label}>日付 <Text style={styles.required}>*</Text></Text>
-                        <TouchableOpacity 
-                            style={styles.dateInputContainer} 
-                            onPress={() => setShowDatePicker(true)}
-                            activeOpacity={0.7}
-                        >
-                            <Ionicons name="calendar-outline" size={24} color="#555" style={{ marginRight: 10 }} />
-                            <Text style={styles.dateInputValue}>{formattedDate}</Text>
-                        </TouchableOpacity>
-                        
-                        {showDatePicker && Platform.OS === 'android' && (
-                            <DateTimePicker
-                                testID="dateTimePicker"
-                                value={dateLogged}
-                                mode="date"
-                                display="default"
-                                onChange={onChangeDate}
-                            />
-                        )}
-
-                        {showDatePicker && Platform.OS === 'ios' && (
-                            <Modal
-                                transparent={true}
-                                animationType="fade"
-                                visible={showDatePicker}
-                                onRequestClose={() => setShowDatePicker(false)}
-                            >
-                                <TouchableOpacity 
-                                    style={styles.modalOverlay} 
-                                    activeOpacity={1} 
-                                    onPress={() => setShowDatePicker(false)}
-                                >
-                                    <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
-                                        <DateTimePicker
-                                            testID="dateTimePicker"
-                                            value={dateLogged}
-                                            mode="date"
-                                            display="inline"
-                                            onChange={onChangeDate}
-                                            style={styles.iosDatePicker}
-                                            themeVariant="light"
-                                        />
-                                    </View>
-                                </TouchableOpacity>
-                            </Modal>
-                        )}
-                    </View>
-
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.label}>タイトル</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="タイトルを入力"
-                            value={title}
-                            onChangeText={setTitle}
-                        />
-                    </View>
-
-                    {/* コメントエリア (flexで伸縮) */}
-                    <View style={styles.commentGroup}>
-                        <Text style={styles.label}>コメント</Text>
-                        <TextInput
-                            style={[styles.input, styles.textArea]}
-                            placeholder="コメントを入力..."
-                            value={description}
-                            onChangeText={setDescription}
-                            multiline
-                        />
-                    </View>
-                </View>
-
-                {/* 作成ボタン */}
-                <TouchableOpacity
-                    style={[styles.createButton, loading && styles.disabledButton]}
-                    onPress={handleCreate}
-                    disabled={loading}
+                <ScrollView 
+                    contentContainerStyle={styles.scrollContent}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
                 >
-                    <Text style={styles.createButtonText}>
-                        {loading ? "作成中..." : "作成する"}
-                    </Text>
-                    {!loading && <Ionicons name="checkmark-circle-outline" size={24} color="#fff" style={{ marginLeft: 8 }} />}
-                </TouchableOpacity>
-            </ScrollView>
-        </KeyboardAvoidingView>
+                    {/* 画像選択エリア (flexで伸縮) */}
+                    <View style={styles.imageSection}>
+                        {imageUri ? (
+                            <View style={styles.imagePreviewContainer}>
+                                <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+                                <TouchableOpacity 
+                                    style={styles.removeImageButton} 
+                                    onPress={() => setImageUri(null)}
+                                >
+                                    <Ionicons name="close-circle" size={30} color="#FF3B30" />
+                                </TouchableOpacity>
+                            </View>
+                        ) : (
+                            <TouchableOpacity style={styles.imageSelectButton} onPress={pickImage}>
+                                <Ionicons name="camera" size={40} color="#007AFF" />
+                                <Text style={styles.imageSelectText}>写真を追加</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+
+                    {/* 入力フォームエリア */}
+                    <View style={styles.formSection}>
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>日付 <Text style={styles.required}>*</Text></Text>
+                            <TouchableOpacity 
+                                style={styles.dateInputContainer} 
+                                onPress={() => setShowDatePicker(true)}
+                                activeOpacity={0.7}
+                            >
+                                <Ionicons name="calendar-outline" size={24} color="#555" style={{ marginRight: 10 }} />
+                                <Text style={styles.dateInputValue}>{formattedDate}</Text>
+                            </TouchableOpacity>
+                            
+                            {showDatePicker && Platform.OS === 'android' && (
+                                <DateTimePicker
+                                    testID="dateTimePicker"
+                                    value={dateLogged}
+                                    mode="date"
+                                    display="default"
+                                    onChange={onChangeDate}
+                                />
+                            )}
+
+                            {showDatePicker && Platform.OS === 'ios' && (
+                                <Modal
+                                    transparent={true}
+                                    animationType="fade"
+                                    visible={showDatePicker}
+                                    onRequestClose={() => setShowDatePicker(false)}
+                                >
+                                    <TouchableOpacity 
+                                        style={styles.modalOverlay} 
+                                        activeOpacity={1} 
+                                        onPress={() => setShowDatePicker(false)}
+                                    >
+                                        <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
+                                            <DateTimePicker
+                                                testID="dateTimePicker"
+                                                value={dateLogged}
+                                                mode="date"
+                                                display="inline"
+                                                onChange={onChangeDate}
+                                                style={styles.iosDatePicker}
+                                                themeVariant="light"
+                                            />
+                                        </View>
+                                    </TouchableOpacity>
+                                </Modal>
+                            )}
+                        </View>
+
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>タイトル</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="タイトルを入力"
+                                value={title}
+                                onChangeText={setTitle}
+                            />
+                        </View>
+
+                        {/* コメントエリア (flexで伸縮) */}
+                        <View style={styles.commentGroup}>
+                            <Text style={styles.label}>コメント</Text>
+                            <TextInput
+                                style={[styles.input, styles.textArea]}
+                                placeholder="コメントを入力..."
+                                value={description}
+                                onChangeText={setDescription}
+                                multiline
+                            />
+                        </View>
+                    </View>
+
+                    {/* 作成ボタン */}
+                    <TouchableOpacity
+                        style={[styles.createButton, loading && styles.disabledButton]}
+                        onPress={handleCreate}
+                        disabled={loading}
+                    >
+                        <Text style={styles.createButtonText}>
+                            {loading ? "作成中..." : "作成する"}
+                        </Text>
+                        {!loading && <Ionicons name="checkmark-circle-outline" size={24} color="#fff" style={{ marginLeft: 8 }} />}
+                    </TouchableOpacity>
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
     );
 }
 
