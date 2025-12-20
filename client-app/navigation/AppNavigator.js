@@ -5,6 +5,7 @@ import { Text, View, ActivityIndicator, StyleSheet, TouchableOpacity } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 
 // 画面インポート
 import LoginScreen from '../screens/LoginScreen'; 
@@ -21,6 +22,7 @@ import LoginInfoScreen from '../screens/LoginInfoScreen';
 import PremiumPlanScreen from '../screens/PremiumPlanScreen';
 import CategoryManagementScreen from '../screens/CategoryManagementScreen';
 import ThemeSettingScreen from '../screens/ThemeSettingScreen';
+import LanguageSettingScreen from '../screens/LanguageSettingScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -30,6 +32,7 @@ const Tab = createBottomTabNavigator();
 // ------------------------------------------------
 const MainTabNavigator = () => {
   const { theme } = useTheme();
+  const { t } = useLanguage();
   
   return (
     <Tab.Navigator
@@ -68,22 +71,22 @@ const MainTabNavigator = () => {
       <Tab.Screen 
         name="Home" 
         component={RecordListScreen} 
-        options={{ title: 'ギャラリー' }} 
+        options={{ title: t('gallery') }} 
       />
       <Tab.Screen 
         name="Create" 
         component={CreateRecordScreen} 
-        options={{ title: '作成' }}
+        options={{ title: t('create') }}
       />
       <Tab.Screen 
         name="Thread" 
         component={ThreadScreen} 
-        options={{ title: 'スレッド' }}
+        options={{ title: t('thread') }}
       />
       <Tab.Screen 
         name="MyPage" 
         component={ProfileScreen} 
-        options={{ title: '設定' }} 
+        options={{ title: t('settings') }} 
       />
     </Tab.Navigator>
   );
@@ -92,12 +95,15 @@ const MainTabNavigator = () => {
 // ------------------------------------------------
 // 未認証ユーザー向けの画面群
 // ------------------------------------------------
-const AuthStack = () => (
+const AuthStack = () => {
+  const { t } = useLanguage();
+  return (
     <Stack.Navigator>
-      <Stack.Screen name="Login" component={LoginScreen} options={{ title: 'ログイン' }} />
-      <Stack.Screen name="Signup" component={SignupScreen} options={{ title: '新規登録' }} />
+      <Stack.Screen name="Login" component={LoginScreen} options={{ title: t('login') }} />
+      <Stack.Screen name="Signup" component={SignupScreen} options={{ title: t('signup') }} />
     </Stack.Navigator>
-);
+  );
+};
 
 // ------------------------------------------------
 // ルートナビゲーター
@@ -105,12 +111,13 @@ const AuthStack = () => (
 const AppNavigator = () => {
   const { isLoading, userToken } = React.useContext(AuthContext);
   const { theme } = useTheme();
+  const { t } = useLanguage();
 
   if (isLoading) {
     return (
       <View style={[styles.loadingScreen, { backgroundColor: theme.colors.background }]}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={[styles.loadingText, { color: theme.colors.secondaryText }]}>認証状態を確認中...</Text>
+        <Text style={[styles.loadingText, { color: theme.colors.secondaryText }]}>{t('checkingAuth')}</Text>
       </View>
     );
   }
@@ -128,7 +135,7 @@ const AppNavigator = () => {
             component={RecordDetailScreen} 
             options={({ navigation }) => ({ 
               headerShown: true, 
-              title: '詳細',
+              title: t('detail'),
               headerBackTitleVisible: false,
               headerStyle: {
                 backgroundColor: theme.colors.background,
@@ -191,6 +198,14 @@ const AppNavigator = () => {
           <Stack.Screen 
             name="ThemeSetting" 
             component={ThemeSettingScreen} 
+            options={{ 
+              headerShown: false,
+              presentation: 'card'
+            }} 
+          />
+          <Stack.Screen 
+            name="LanguageSetting" 
+            component={LanguageSettingScreen} 
             options={{ 
               headerShown: false,
               presentation: 'card'

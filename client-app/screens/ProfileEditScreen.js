@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView,
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { updateProfile } from '../api/user';
@@ -11,6 +12,7 @@ import { SERVER_URL } from '../config';
 const ProfileEditScreen = ({ navigation }) => {
     const { userInfo, userToken, authContext } = useContext(AuthContext);
     const { theme } = useTheme();
+    const { t } = useLanguage();
     const [userName, setUserName] = useState(userInfo?.user_name || '');
     const [avatarUri, setAvatarUri] = useState(
         userInfo?.avatar_url ? `${SERVER_URL}/${userInfo.avatar_url}` : null
@@ -23,7 +25,7 @@ const ProfileEditScreen = ({ navigation }) => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         
         if (status !== 'granted') {
-            Alert.alert('権限が必要です', '写真ライブラリへのアクセスを許可してください');
+            Alert.alert(t('permissionRequired'), t('photoLibraryAccess'));
             return;
         }
 
@@ -52,7 +54,7 @@ const ProfileEditScreen = ({ navigation }) => {
 
     const handleSave = async () => {
         if (!userName.trim()) {
-            Alert.alert('エラー', 'ユーザー名を入力してください');
+            Alert.alert(t('error'), t('userNameRequired'));
             return;
         }
 
@@ -64,12 +66,12 @@ const ProfileEditScreen = ({ navigation }) => {
             // AuthContextのユーザー情報を更新
             authContext.updateUserInfo(data.user);
             
-            Alert.alert('保存完了', 'プロフィールを更新しました', [
-                { text: 'OK', onPress: () => navigation.goBack() }
+            Alert.alert(t('saveCompleted'), t('profileUpdated'), [
+                { text: t('ok'), onPress: () => navigation.goBack() }
             ]);
         } catch (error) {
-            console.error('プロフィール更新エラー:', error);
-            Alert.alert('エラー', error.message || 'プロフィールの更新に失敗しました');
+            console.error(t('profileUpdateError'), error);
+            Alert.alert(t('error'), error.message || t('profileUpdateFailed'));
         } finally {
             setIsLoading(false);
         }
@@ -88,7 +90,9 @@ const ProfileEditScreen = ({ navigation }) => {
                 >
                     <Ionicons name="arrow-back" size={24} color={theme.colors.icon} />
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: theme.colors.text }]}>プロフィール設定</Text>
+                <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
+                    {t('profileSettings')}
+                </Text>
                 <TouchableOpacity 
                     style={styles.saveButton}
                     onPress={handleSave}
@@ -97,7 +101,9 @@ const ProfileEditScreen = ({ navigation }) => {
                     {isLoading ? (
                         <ActivityIndicator size="small" color={theme.colors.primary} />
                     ) : (
-                        <Text style={[styles.saveButtonText, { color: theme.colors.primary }]}>保存</Text>
+                        <Text style={[styles.saveButtonText, { color: theme.colors.primary }]}>
+                            {t('save')}
+                        </Text>
                     )}
                 </TouchableOpacity>
             </View>
@@ -120,13 +126,15 @@ const ProfileEditScreen = ({ navigation }) => {
                             <Ionicons name="camera" size={20} color="#fff" />
                         </View>
                     </TouchableOpacity>
-                    <Text style={styles.avatarHint}>タップして写真を選択</Text>
+                    <Text style={styles.avatarHint}>{t('tapToSelectPhoto')}</Text>
                 </View>
 
                 {/* フォーム */}
                 <View style={[styles.formSection, { backgroundColor: theme.colors.card }]}>
                     <View style={styles.inputGroup}>
-                        <Text style={[styles.label, { color: theme.colors.text }]}>ユーザー名</Text>
+                        <Text style={[styles.label, { color: theme.colors.text }]}>
+                            {t('userName')}
+                        </Text>
                         <TextInput
                             style={[styles.input, {
                                 backgroundColor: theme.colors.secondaryBackground,
@@ -135,7 +143,7 @@ const ProfileEditScreen = ({ navigation }) => {
                             }]}
                             value={userName}
                             onChangeText={setUserName}
-                            placeholder="ユーザー名を入力"
+                            placeholder={t('userNamePlaceholder')}
                             placeholderTextColor={theme.colors.inactive}
                         />
                     </View>

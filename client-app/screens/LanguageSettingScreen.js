@@ -5,33 +5,33 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 
-const ThemeSettingScreen = ({ navigation }) => {
-    const { theme, changeTheme } = useTheme();
-    const { t } = useLanguage();
+const LanguageSettingScreen = ({ navigation }) => {
+    const { theme } = useTheme();
+    const { language, activeLanguage, changeLanguage, t } = useLanguage();
 
-    const themeOptions = [
+    const languageOptions = [
         {
-            id: 'light',
-            title: t('lightMode'),
-            description: t('lightModeDesc'),
-            icon: 'sunny',
+            id: 'ja',
+            title: '日本語',
+            subtitle: 'Japanese',
+            icon: 'language',
         },
         {
-            id: 'dark',
-            title: t('darkMode'),
-            description: t('darkModeDesc'),
-            icon: 'moon',
+            id: 'en',
+            title: 'English',
+            subtitle: '英語',
+            icon: 'language',
         },
         {
             id: 'system',
-            title: t('systemSettings'),
-            description: t('systemSettingsDesc'),
+            title: 'システム設定に従う',
+            subtitle: 'Follow System Settings',
             icon: 'phone-portrait',
         },
     ];
 
-    const handleThemeSelect = (themeId) => {
-        changeTheme(themeId);
+    const handleLanguageSelect = (languageId) => {
+        changeLanguage(languageId);
     };
 
     return (
@@ -51,7 +51,7 @@ const ThemeSettingScreen = ({ navigation }) => {
                     <Ionicons name="arrow-back" size={24} color={theme.colors.icon} />
                 </TouchableOpacity>
                 <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
-                    {t('theme')}
+                    {t('languageSettings')}
                 </Text>
                 <View style={styles.placeholder} />
             </View>
@@ -63,15 +63,15 @@ const ThemeSettingScreen = ({ navigation }) => {
                 {/* 説明文 */}
                 <View style={styles.descriptionSection}>
                     <Text style={[styles.descriptionText, { color: theme.colors.secondaryText }]}>
-                        {t('selectTheme')}
+                        {t('selectLanguage')}
                     </Text>
                 </View>
 
-                {/* テーマ選択リスト */}
+                {/* 言語選択リスト */}
                 <View style={[styles.optionsContainer, { backgroundColor: theme.colors.card }]}>
-                    {themeOptions.map((option, index) => {
-                        const isSelected = theme.mode === option.id;
-                        const isLast = index === themeOptions.length - 1;
+                    {languageOptions.map((option, index) => {
+                        const isSelected = language === option.id;
+                        const isLast = index === languageOptions.length - 1;
 
                         return (
                             <TouchableOpacity
@@ -83,7 +83,7 @@ const ThemeSettingScreen = ({ navigation }) => {
                                         borderBottomColor: theme.colors.border 
                                     }
                                 ]}
-                                onPress={() => handleThemeSelect(option.id)}
+                                onPress={() => handleLanguageSelect(option.id)}
                                 activeOpacity={0.7}
                             >
                                 <View style={styles.optionIconContainer}>
@@ -101,10 +101,10 @@ const ThemeSettingScreen = ({ navigation }) => {
                                         {option.title}
                                     </Text>
                                     <Text style={[
-                                        styles.optionDescription, 
+                                        styles.optionSubtitle, 
                                         { color: theme.colors.secondaryText }
                                     ]}>
-                                        {option.description}
+                                        {option.subtitle}
                                     </Text>
                                 </View>
                                 {isSelected && (
@@ -121,32 +121,45 @@ const ThemeSettingScreen = ({ navigation }) => {
                     })}
                 </View>
 
-                {/* プレビュー情報 */}
-                <View style={styles.previewSection}>
-                    <Text style={[styles.previewLabel, { color: theme.colors.secondaryText }]}>
-                        {t('currentTheme')}
+                {/* 現在の言語情報 */}
+                <View style={styles.currentLanguageSection}>
+                    <Text style={[styles.currentLanguageLabel, { color: theme.colors.secondaryText }]}>
+                        {t('currentLanguage')}
                     </Text>
                     <View style={[
-                        styles.previewCard, 
+                        styles.currentLanguageCard, 
                         { 
                             backgroundColor: theme.colors.card,
                             borderColor: theme.colors.border 
                         }
                     ]}>
-                        <View style={styles.previewHeader}>
+                        <View style={styles.currentLanguageHeader}>
                             <Ionicons 
-                                name={theme.isDark ? 'moon' : 'sunny'} 
+                                name="language" 
                                 size={20} 
                                 color={theme.colors.primary} 
                             />
-                            <Text style={[styles.previewTitle, { color: theme.colors.text }]}>
-                                {theme.isDark ? t('darkMode') : t('lightMode')}
+                            <Text style={[styles.currentLanguageTitle, { color: theme.colors.text }]}>
+                                {activeLanguage === 'ja' ? t('japanese') : t('english')}
                             </Text>
                         </View>
-                        <Text style={[styles.previewDescription, { color: theme.colors.secondaryText }]}>
-                            {theme.mode === 'system' 
-                                ? t('themeAutoApplied')
-                                : t('themeApplied')}
+                        <Text style={[styles.currentLanguageDescription, { color: theme.colors.secondaryText }]}>
+                            {language === 'system' 
+                                ? t('languageAutoApplied')
+                                : t('languageApplied')}
+                        </Text>
+                    </View>
+                </View>
+
+                {/* 注意事項 */}
+                <View style={styles.noteSection}>
+                    <View style={[styles.noteCard, {
+                        backgroundColor: theme.isDark ? '#2a2a2a' : '#f8f9fa',
+                        borderColor: theme.colors.border
+                    }]}>
+                        <Ionicons name="information-circle" size={20} color={theme.colors.primary} />
+                        <Text style={[styles.noteText, { color: theme.colors.secondaryText }]}>
+                            {t('languageChangeNote')}
                         </Text>
                     </View>
                 </View>
@@ -195,12 +208,10 @@ const styles = StyleSheet.create({
         marginHorizontal: 16,
         borderRadius: 12,
         overflow: 'hidden',
-        // iOS shadow
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 8,
-        // Android shadow
         elevation: 2,
     },
     optionItem: {
@@ -224,42 +235,59 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         marginBottom: 4,
     },
-    optionDescription: {
+    optionSubtitle: {
         fontSize: 13,
         lineHeight: 18,
     },
     checkmarkContainer: {
         marginLeft: 12,
     },
-    previewSection: {
+    currentLanguageSection: {
         marginTop: 32,
         paddingHorizontal: 20,
     },
-    previewLabel: {
+    currentLanguageLabel: {
         fontSize: 14,
         fontWeight: '600',
         marginBottom: 12,
     },
-    previewCard: {
+    currentLanguageCard: {
         padding: 16,
         borderRadius: 12,
         borderWidth: 1,
     },
-    previewHeader: {
+    currentLanguageHeader: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 8,
     },
-    previewTitle: {
+    currentLanguageTitle: {
         fontSize: 16,
         fontWeight: '600',
         marginLeft: 8,
     },
-    previewDescription: {
+    currentLanguageDescription: {
         fontSize: 14,
         lineHeight: 20,
     },
+    noteSection: {
+        marginTop: 24,
+        paddingHorizontal: 20,
+    },
+    noteCard: {
+        flexDirection: 'row',
+        padding: 16,
+        borderRadius: 12,
+        borderWidth: 1,
+        alignItems: 'flex-start',
+    },
+    noteText: {
+        flex: 1,
+        fontSize: 13,
+        lineHeight: 20,
+        marginLeft: 12,
+    },
 });
 
-export default ThemeSettingScreen;
+export default LanguageSettingScreen;
 

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert, Act
 import { Ionicons } from '@expo/vector-icons';
 import { useRecordsApi } from '../api/records';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { getImageUrl } from '../utils/imageHelper';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -13,6 +14,7 @@ export default function RecordDetailScreen({ route, navigation }) {
     const [imageAspectRatio, setImageAspectRatio] = useState(1);
     const { deleteRecord, fetchRecordById } = useRecordsApi();
     const { theme } = useTheme();
+    const { t } = useLanguage();
 
     // 画面が表示されるたびに最新データを取得
     useFocusEffect(
@@ -22,11 +24,11 @@ export default function RecordDetailScreen({ route, navigation }) {
                     const updatedRecord = await fetchRecordById(initialRecord.id);
                     setRecord(updatedRecord);
                 } catch (error) {
-                    console.error('記録の取得に失敗しました:', error);
+                    console.error(t('recordFetchFailed'), error);
                 }
             };
             loadRecord();
-        }, [initialRecord.id, fetchRecordById])
+        }, [initialRecord.id, fetchRecordById, t])
     );
 
     // 画像の縦横比を取得
@@ -40,7 +42,7 @@ export default function RecordDetailScreen({ route, navigation }) {
                     setImageAspectRatio(width / height);
                 },
                 (error) => {
-                    console.error('画像サイズの取得に失敗:', error);
+                    console.error(t('imageSizeFetchFailed'), error);
                     setImageAspectRatio(16 / 9); // デフォルト値
                 }
             );
@@ -49,18 +51,18 @@ export default function RecordDetailScreen({ route, navigation }) {
 
     const handleDelete = () => {
         Alert.alert(
-            "削除確認",
-            "この記録を本当に削除しますか？",
+            t('deleteConfirm'),
+            t('deleteConfirmMessage'),
             [
-                { text: "キャンセル" },
+                { text: t('cancel') },
                 {
-                    text: "削除",
+                    text: t('delete'),
                     onPress: async () => {
                         try {
                             await deleteRecord(record.id);
                             navigation.goBack(); // 削除後に前の画面に戻る
                         } catch (error) {
-                            Alert.alert('削除失敗', error.message);
+                            Alert.alert(t('deleteFailed'), error.message);
                         }
                     },
                     style: 'destructive'
@@ -88,7 +90,9 @@ export default function RecordDetailScreen({ route, navigation }) {
                 ) : (
                     <View style={[styles.placeholderImageContainer, { backgroundColor: theme.colors.border }]}>
                         <Ionicons name="image-outline" size={80} color={theme.colors.inactive} />
-                        <Text style={[styles.placeholderText, { color: theme.colors.inactive }]}>No Image</Text>
+                        <Text style={[styles.placeholderText, { color: theme.colors.inactive }]}>
+                            {t('noImage')}
+                        </Text>
                     </View>
                 )}
 
@@ -109,7 +113,9 @@ export default function RecordDetailScreen({ route, navigation }) {
             }]}>
                 <TouchableOpacity style={styles.footerButton} onPress={handleEdit}>
                     <Ionicons name="create-outline" size={24} color={theme.colors.primary} />
-                    <Text style={[styles.footerButtonText, { color: theme.colors.primary }]}>編集</Text>
+                    <Text style={[styles.footerButtonText, { color: theme.colors.primary }]}>
+                        {t('edit')}
+                    </Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
                     <Ionicons name="trash-outline" size={24} color="#FF3B30" />

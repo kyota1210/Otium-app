@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { StyleSheet, Text, View, TextInput, Button, Alert, TouchableOpacity } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function LoginScreen({ navigation }) {
     const [email, setEmail] = useState('');
@@ -10,17 +11,18 @@ export default function LoginScreen({ navigation }) {
     
     const { authContext } = useContext(AuthContext);
     const { theme } = useTheme();
+    const { t } = useLanguage();
 
     const handleLogin = async () => {
         if (!email || !password) {
-            Alert.alert('エラー', 'メールアドレスとパスワードを入力してください。');
+            Alert.alert(t('error'), t('emailPasswordRequired'));
             return;
         }
         setLoading(true);
         
         const result = await authContext.signIn(email, password);
         if (!result.success) {
-            Alert.alert('ログイン失敗', result.error);
+            Alert.alert(t('loginFailed'), result.error);
         }
         // 成功した場合、AppNavigatorが自動で画面を切り替えます
         setLoading(false);
@@ -28,7 +30,9 @@ export default function LoginScreen({ navigation }) {
 
     return (
         <View style={[styles.container, { backgroundColor: theme.colors.secondaryBackground }]}>
-            <Text style={[styles.title, { color: theme.colors.text }]}>ログイン</Text>
+            <Text style={[styles.title, { color: theme.colors.text }]}>
+                {t('login')}
+            </Text>
             
             <TextInput 
                 style={[styles.input, {
@@ -36,7 +40,7 @@ export default function LoginScreen({ navigation }) {
                     borderColor: theme.colors.border,
                     color: theme.colors.text
                 }]}
-                placeholder="メールアドレス" 
+                placeholder={t('emailAddress')} 
                 placeholderTextColor={theme.colors.inactive}
                 value={email} 
                 onChangeText={setEmail} 
@@ -49,17 +53,24 @@ export default function LoginScreen({ navigation }) {
                     borderColor: theme.colors.border,
                     color: theme.colors.text
                 }]}
-                placeholder="パスワード" 
+                placeholder={t('password')} 
                 placeholderTextColor={theme.colors.inactive}
                 value={password} 
                 onChangeText={setPassword} 
                 secureTextEntry
             />
 
-            <Button title={loading ? "ログイン中..." : "ログイン"} onPress={handleLogin} disabled={loading} color={theme.colors.primary}/>
+            <Button 
+                title={loading ? t('loggingIn') : t('login')} 
+                onPress={handleLogin} 
+                disabled={loading} 
+                color={theme.colors.primary}
+            />
 
             <TouchableOpacity style={styles.signupLink} onPress={() => navigation.navigate('Signup')}>
-                <Text style={[styles.signupText, { color: theme.colors.primary }]}>新規登録はこちら</Text>
+                <Text style={[styles.signupText, { color: theme.colors.primary }]}>
+                    {t('signUpHere')}
+                </Text>
             </TouchableOpacity>
         </View>
     );

@@ -3,22 +3,24 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const PremiumPlanScreen = ({ navigation }) => {
     const [isPremium, setIsPremium] = useState(false);
     const { theme } = useTheme();
+    const { t } = useLanguage();
 
     const handleSubscribe = () => {
         Alert.alert(
-            'プレミアムプランへアップグレード',
+            t('upgradeToPremium'),
             '月額980円でプレミアム機能をご利用いただけます。',
             [
-                { text: 'キャンセル', style: 'cancel' },
+                { text: t('cancel'), style: 'cancel' },
                 { 
                     text: '購読する', 
                     onPress: () => {
                         // TODO: 購読処理を実装
-                        Alert.alert('完了', 'プレミアムプランにアップグレードしました');
+                        Alert.alert(t('completed'), t('upgradedToPremium'));
                         setIsPremium(true);
                     }
                 }
@@ -28,16 +30,16 @@ const PremiumPlanScreen = ({ navigation }) => {
 
     const handleCancel = () => {
         Alert.alert(
-            'プレミアムプランの解約',
-            '本当に解約しますか？',
+            t('cancelPlan'),
+            t('cancelPlanConfirm'),
             [
-                { text: 'キャンセル', style: 'cancel' },
+                { text: t('cancel'), style: 'cancel' },
                 { 
                     text: '解約する', 
                     style: 'destructive',
                     onPress: () => {
                         // TODO: 解約処理を実装
-                        Alert.alert('完了', 'プレミアムプランを解約しました');
+                        Alert.alert(t('completed'), t('planCanceled'));
                         setIsPremium(false);
                     }
                 }
@@ -58,7 +60,7 @@ const PremiumPlanScreen = ({ navigation }) => {
                 >
                     <Ionicons name="arrow-back" size={24} color={theme.colors.icon} />
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: theme.colors.text }]}>プレミアムプラン</Text>
+                <Text style={[styles.headerTitle, { color: theme.colors.text }]}>{t('premiumPlan')}</Text>
                 <View style={styles.placeholder} />
             </View>
 
@@ -73,45 +75,45 @@ const PremiumPlanScreen = ({ navigation }) => {
                         />
                     </View>
                     <Text style={[styles.statusTitle, { color: theme.colors.text }]}>
-                        {isPremium ? 'プレミアムプラン利用中' : 'フリープラン'}
+                        {isPremium ? t('premiumActive') : t('freePlan')}
                     </Text>
                     <Text style={[styles.statusSubtitle, { color: theme.colors.secondaryText }]}>
-                        {isPremium ? '次回更新日: 2025/01/20' : '無料でご利用いただけます'}
+                        {isPremium ? `${t('nextRenewal')}: 2025/01/20` : t('freeForever')}
                     </Text>
                 </View>
 
                 {/* プレミアム機能 */}
                 <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>プレミアム機能</Text>
+                    <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('premiumFeatures')}</Text>
                     <View style={[styles.featureCard, { backgroundColor: theme.colors.card }]}>
                         <FeatureItem 
                             icon="cloud-upload" 
-                            title="無制限のクラウドストレージ" 
-                            description="すべての写真と動画をクラウドに保存"
+                            title={t('unlimitedStorage')} 
+                            description={t('allPhotosCloud')}
                             theme={theme}
                         />
                         <FeatureItem 
                             icon="sparkles" 
-                            title="高度なフィルター機能" 
-                            description="プロフェッショナルな編集ツール"
+                            title={t('advancedFilters')} 
+                            description={t('professionalTools')}
                             theme={theme}
                         />
                         <FeatureItem 
                             icon="stats-chart" 
-                            title="詳細な統計とインサイト" 
-                            description="記録の傾向を詳しく分析"
+                            title={t('detailedStats')} 
+                            description={t('analyzeTrends')}
                             theme={theme}
                         />
                         <FeatureItem 
                             icon="notifications-off" 
-                            title="広告なし" 
-                            description="快適な閲覧体験"
+                            title={t('noAds')} 
+                            description={t('comfortableViewing')}
                             theme={theme}
                         />
                         <FeatureItem 
                             icon="people" 
-                            title="優先サポート" 
-                            description="専門スタッフによる迅速なサポート"
+                            title={t('prioritySupport')} 
+                            description={t('rapidSupport')}
                             theme={theme}
                         />
                     </View>
@@ -120,13 +122,13 @@ const PremiumPlanScreen = ({ navigation }) => {
                 {/* 価格 */}
                 {!isPremium && (
                     <View style={styles.section}>
-                        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>料金プラン</Text>
+                        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('pricingPlan')}</Text>
                         <View style={[styles.priceCard, { backgroundColor: theme.colors.card }]}>
                             <View style={styles.priceRow}>
                                 <Text style={[styles.priceAmount, { color: theme.colors.primary }]}>¥980</Text>
-                                <Text style={[styles.priceUnit, { color: theme.colors.secondaryText }]}>/月</Text>
+                                <Text style={[styles.priceUnit, { color: theme.colors.secondaryText }]}>{t('perMonth')}</Text>
                             </View>
-                            <Text style={[styles.priceNote, { color: theme.colors.inactive }]}>いつでもキャンセル可能</Text>
+                            <Text style={[styles.priceNote, { color: theme.colors.inactive }]}>{t('cancelAnytime')}</Text>
                         </View>
                     </View>
                 )}
@@ -139,7 +141,7 @@ const PremiumPlanScreen = ({ navigation }) => {
                             onPress={handleSubscribe}
                         >
                             <Ionicons name="diamond" size={20} color="#fff" />
-                            <Text style={styles.subscribeButtonText}>プレミアムにアップグレード</Text>
+                            <Text style={styles.subscribeButtonText}>{t('upgradeToPremium')}</Text>
                         </TouchableOpacity>
                     ) : (
                         <TouchableOpacity 
@@ -149,7 +151,7 @@ const PremiumPlanScreen = ({ navigation }) => {
                             }]}
                             onPress={handleCancel}
                         >
-                            <Text style={styles.cancelButtonText}>プランを解約</Text>
+                            <Text style={styles.cancelButtonText}>{t('cancelPlan')}</Text>
                         </TouchableOpacity>
                     )}
                 </View>

@@ -8,12 +8,14 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { getImageUrl } from '../utils/imageHelper';
 
 export default function CreateRecordScreen({ navigation, route }) {
     const insets = useSafeAreaInsets();
     const { userToken } = useContext(AuthContext);
     const { theme } = useTheme();
+    const { t } = useLanguage();
     
     // 編集モードの判定
     const editRecord = route.params?.record;
@@ -43,13 +45,13 @@ export default function CreateRecordScreen({ navigation, route }) {
                 const data = await fetchCategories(userToken);
                 setCategories(data);
             } catch (error) {
-                console.error('カテゴリー取得エラー:', error);
+                console.error(t('categoryFetchError'), error);
             } finally {
                 setCategoriesLoading(false);
             }
         };
         loadCategories();
-    }, [userToken]);
+    }, [userToken, t]);
 
     // 日付変更ハンドラ
     const onChangeDate = (event, selectedDate) => {
@@ -70,7 +72,7 @@ export default function CreateRecordScreen({ navigation, route }) {
     const pickImage = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
-            Alert.alert('権限エラー', '画像をアップロードするにはカメラロールへのアクセス許可が必要です。');
+            Alert.alert(t('permissionError'), t('cameraRollPermission'));
             return;
         }
 
@@ -87,7 +89,7 @@ export default function CreateRecordScreen({ navigation, route }) {
 
     const handleSave = async () => {
         if (!dateLogged) {
-            Alert.alert('エラー', '日付は必須です。');
+            Alert.alert(t('error'), t('dateRequired'));
             return;
         }
 
@@ -103,11 +105,11 @@ export default function CreateRecordScreen({ navigation, route }) {
 
             if (isEditMode) {
                 await updateRecord(editRecord.id, recordData);
-                Alert.alert('成功', '記録が更新されました。');
+                Alert.alert(t('success'), t('recordUpdated'));
                 navigation.goBack();
             } else {
                 await createRecord(recordData);
-                Alert.alert('成功', '新しい記録が追加されました。');
+                Alert.alert(t('success'), t('recordAdded'));
                 setTitle('');
                 setDescription('');
                 setImageUri(null);
@@ -115,7 +117,7 @@ export default function CreateRecordScreen({ navigation, route }) {
                 navigation.navigate('Home'); 
             }
         } catch (error) {
-            Alert.alert(isEditMode ? '更新失敗' : '作成失敗', error.message);
+            Alert.alert(isEditMode ? t('updateFailed') : t('createFailed'), error.message);
         } finally {
             setLoading(false);
         }
@@ -142,12 +144,16 @@ export default function CreateRecordScreen({ navigation, route }) {
                         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButton}>
                             <Ionicons name="close" size={28} color={theme.colors.icon} />
                         </TouchableOpacity>
-                        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>記録を編集</Text>
+                        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
+                            {t('editRecord')}
+                        </Text>
                         <TouchableOpacity onPress={handleSave} disabled={loading} style={styles.saveButton}>
                             {loading ? (
                                 <ActivityIndicator size="small" color={theme.colors.primary} />
                             ) : (
-                                <Text style={[styles.saveButtonText, { color: theme.colors.primary }]}>更新</Text>
+                                <Text style={[styles.saveButtonText, { color: theme.colors.primary }]}>
+                                    {t('update')}
+                                </Text>
                             )}
                         </TouchableOpacity>
                     </View>
@@ -176,7 +182,9 @@ export default function CreateRecordScreen({ navigation, route }) {
                                 borderColor: theme.isDark ? '#2a3a4a' : '#d0e0ff'
                             }]} onPress={pickImage}>
                                 <Ionicons name="camera" size={40} color={theme.colors.primary} />
-                                <Text style={[styles.imageSelectText, { color: theme.colors.primary }]}>写真を追加</Text>
+                                <Text style={[styles.imageSelectText, { color: theme.colors.primary }]}>
+                                    {t('addPhoto')}
+                                </Text>
                             </TouchableOpacity>
                         )}
                     </View>
@@ -185,7 +193,7 @@ export default function CreateRecordScreen({ navigation, route }) {
                     <View style={styles.formSection}>
                         <View style={styles.inputGroup}>
                             <Text style={[styles.label, { color: theme.colors.secondaryText }]}>
-                                日付 <Text style={styles.required}>*</Text>
+                                {t('date')} <Text style={styles.required}>*</Text>
                             </Text>
                             <TouchableOpacity 
                                 style={[styles.dateInputContainer, { 
@@ -238,7 +246,9 @@ export default function CreateRecordScreen({ navigation, route }) {
                         </View>
 
                         <View style={styles.inputGroup}>
-                            <Text style={[styles.label, { color: theme.colors.secondaryText }]}>カテゴリー</Text>
+                            <Text style={[styles.label, { color: theme.colors.secondaryText }]}>
+                                {t('category')}
+                            </Text>
                             {categoriesLoading ? (
                                 <ActivityIndicator size="small" color={theme.colors.primary} />
                             ) : (
@@ -284,14 +294,16 @@ export default function CreateRecordScreen({ navigation, route }) {
                         </View>
 
                         <View style={styles.inputGroup}>
-                            <Text style={[styles.label, { color: theme.colors.secondaryText }]}>タイトル</Text>
+                            <Text style={[styles.label, { color: theme.colors.secondaryText }]}>
+                                {t('title')}
+                            </Text>
                             <TextInput
                                 style={[styles.input, { 
                                     backgroundColor: theme.colors.secondaryBackground,
                                     borderColor: theme.colors.border,
                                     color: theme.colors.text 
                                 }]}
-                                placeholder="タイトルを入力"
+                                placeholder={t('titlePlaceholder')}
                                 placeholderTextColor={theme.colors.inactive}
                                 value={title}
                                 onChangeText={setTitle}
@@ -300,14 +312,16 @@ export default function CreateRecordScreen({ navigation, route }) {
 
                         {/* コメントエリア */}
                         <View style={styles.commentGroup}>
-                            <Text style={[styles.label, { color: theme.colors.secondaryText }]}>コメント</Text>
+                            <Text style={[styles.label, { color: theme.colors.secondaryText }]}>
+                                {t('comment')}
+                            </Text>
                             <TextInput
                                 style={[styles.input, styles.textArea, { 
                                     backgroundColor: theme.colors.secondaryBackground,
                                     borderColor: theme.colors.border,
                                     color: theme.colors.text 
                                 }]}
-                                placeholder="コメントを入力..."
+                                placeholder={t('commentPlaceholder')}
                                 placeholderTextColor={theme.colors.inactive}
                                 value={description}
                                 onChangeText={setDescription}
@@ -328,7 +342,7 @@ export default function CreateRecordScreen({ navigation, route }) {
                             disabled={loading}
                         >
                             <Text style={styles.createButtonText}>
-                                {loading ? "作成中..." : "作成する"}
+                                {loading ? t('creating') : t('create')}
                             </Text>
                             {!loading && <Ionicons name="checkmark-circle-outline" size={24} color="#fff" style={{ marginLeft: 8 }} />}
                         </TouchableOpacity>

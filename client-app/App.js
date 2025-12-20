@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import AppNavigator from './navigation/AppNavigator';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // ステータスバーとナビゲーションをラップするコンポーネント
@@ -26,11 +27,13 @@ export default function App() {
   return (
     // 認証情報と機能（ログイン/ログアウト）をアプリ全体で利用可能にする
     <AuthProvider>
-      <ThemeProvider>
-        <SafeAreaProvider>
-          <AppContent />
-        </SafeAreaProvider>
-      </ThemeProvider>
+      <LanguageProvider>
+        <ThemeProvider>
+          <SafeAreaProvider>
+            <AppContent />
+          </SafeAreaProvider>
+        </ThemeProvider>
+      </LanguageProvider>
     </AuthProvider>
   );
 }

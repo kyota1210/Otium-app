@@ -3,11 +3,13 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView 
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const LoginInfoScreen = ({ navigation }) => {
     const { userInfo } = useContext(AuthContext);
     const { theme } = useTheme();
+    const { t } = useLanguage();
     const [email, setEmail] = useState(userInfo?.email || '');
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -15,12 +17,12 @@ const LoginInfoScreen = ({ navigation }) => {
 
     const handleUpdateEmail = () => {
         // TODO: メールアドレス更新APIを呼び出す
-        Alert.alert('確認', 'メールアドレスを変更しますか？', [
-            { text: 'キャンセル', style: 'cancel' },
+        Alert.alert(t('confirm'), t('changeEmailConfirm'), [
+            { text: t('cancel'), style: 'cancel' },
             { 
-                text: '変更', 
+                text: t('update'), 
                 onPress: () => {
-                    Alert.alert('完了', 'メールアドレスを変更しました');
+                    Alert.alert(t('completed'), t('emailChanged'));
                 }
             }
         ]);
@@ -28,13 +30,13 @@ const LoginInfoScreen = ({ navigation }) => {
 
     const handleUpdatePassword = () => {
         if (newPassword !== confirmPassword) {
-            Alert.alert('エラー', '新しいパスワードが一致しません');
+            Alert.alert(t('error'), 'パスワードが一致しません');
             return;
         }
         // TODO: パスワード更新APIを呼び出す
-        Alert.alert('完了', 'パスワードを変更しました', [
+        Alert.alert(t('completed'), t('passwordChanged'), [
             {
-                text: 'OK',
+                text: t('ok'),
                 onPress: () => {
                     setCurrentPassword('');
                     setNewPassword('');
@@ -57,23 +59,23 @@ const LoginInfoScreen = ({ navigation }) => {
                 >
                     <Ionicons name="arrow-back" size={24} color={theme.colors.icon} />
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: theme.colors.text }]}>ログイン情報の変更</Text>
+                <Text style={[styles.headerTitle, { color: theme.colors.text }]}>{t('loginInfo')}</Text>
                 <View style={styles.placeholder} />
             </View>
 
             <ScrollView style={[styles.scrollView, { backgroundColor: theme.colors.secondaryBackground }]}>
                 {/* メールアドレス変更 */}
                 <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: theme.colors.secondaryText }]}>メールアドレス</Text>
+                    <Text style={[styles.sectionTitle, { color: theme.colors.secondaryText }]}>{t('emailSection')}</Text>
                     <View style={[styles.card, { backgroundColor: theme.colors.card }]}>
                         <View style={styles.inputGroup}>
-                            <Text style={[styles.label, { color: theme.colors.text }]}>現在のメールアドレス</Text>
+                            <Text style={[styles.label, { color: theme.colors.text }]}>{t('currentEmail')}</Text>
                             <Text style={[styles.currentValue, { color: theme.colors.secondaryText }]}>
                                 {userInfo?.email || ''}
                             </Text>
                         </View>
                         <View style={styles.inputGroup}>
-                            <Text style={[styles.label, { color: theme.colors.text }]}>新しいメールアドレス</Text>
+                            <Text style={[styles.label, { color: theme.colors.text }]}>{t('newEmail')}</Text>
                             <TextInput
                                 style={[styles.input, {
                                     backgroundColor: theme.colors.secondaryBackground,
@@ -82,7 +84,7 @@ const LoginInfoScreen = ({ navigation }) => {
                                 }]}
                                 value={email}
                                 onChangeText={setEmail}
-                                placeholder="新しいメールアドレスを入力"
+                                placeholder={t('newEmailPlaceholder')}
                                 placeholderTextColor={theme.colors.inactive}
                                 keyboardType="email-address"
                                 autoCapitalize="none"
@@ -92,17 +94,17 @@ const LoginInfoScreen = ({ navigation }) => {
                             style={[styles.button, { backgroundColor: theme.colors.primary }]}
                             onPress={handleUpdateEmail}
                         >
-                            <Text style={styles.buttonText}>メールアドレスを変更</Text>
+                            <Text style={styles.buttonText}>{t('changeEmail')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
 
                 {/* パスワード変更 */}
                 <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: theme.colors.secondaryText }]}>パスワード</Text>
+                    <Text style={[styles.sectionTitle, { color: theme.colors.secondaryText }]}>{t('passwordSection')}</Text>
                     <View style={[styles.card, { backgroundColor: theme.colors.card }]}>
                         <View style={styles.inputGroup}>
-                            <Text style={[styles.label, { color: theme.colors.text }]}>現在のパスワード</Text>
+                            <Text style={[styles.label, { color: theme.colors.text }]}>{t('currentPassword')}</Text>
                             <TextInput
                                 style={[styles.input, {
                                     backgroundColor: theme.colors.secondaryBackground,
@@ -111,13 +113,13 @@ const LoginInfoScreen = ({ navigation }) => {
                                 }]}
                                 value={currentPassword}
                                 onChangeText={setCurrentPassword}
-                                placeholder="現在のパスワードを入力"
+                                placeholder={t('currentPasswordPlaceholder')}
                                 placeholderTextColor={theme.colors.inactive}
                                 secureTextEntry
                             />
                         </View>
                         <View style={styles.inputGroup}>
-                            <Text style={[styles.label, { color: theme.colors.text }]}>新しいパスワード</Text>
+                            <Text style={[styles.label, { color: theme.colors.text }]}>{t('newPassword')}</Text>
                             <TextInput
                                 style={[styles.input, {
                                     backgroundColor: theme.colors.secondaryBackground,
@@ -126,13 +128,13 @@ const LoginInfoScreen = ({ navigation }) => {
                                 }]}
                                 value={newPassword}
                                 onChangeText={setNewPassword}
-                                placeholder="新しいパスワードを入力"
+                                placeholder={t('newPasswordPlaceholder')}
                                 placeholderTextColor={theme.colors.inactive}
                                 secureTextEntry
                             />
                         </View>
                         <View style={styles.inputGroup}>
-                            <Text style={[styles.label, { color: theme.colors.text }]}>新しいパスワード（確認）</Text>
+                            <Text style={[styles.label, { color: theme.colors.text }]}>{t('confirmPassword')}</Text>
                             <TextInput
                                 style={[styles.input, {
                                     backgroundColor: theme.colors.secondaryBackground,
@@ -141,7 +143,7 @@ const LoginInfoScreen = ({ navigation }) => {
                                 }]}
                                 value={confirmPassword}
                                 onChangeText={setConfirmPassword}
-                                placeholder="新しいパスワードを再入力"
+                                placeholder={t('confirmPasswordPlaceholder')}
                                 placeholderTextColor={theme.colors.inactive}
                                 secureTextEntry
                             />
@@ -150,7 +152,7 @@ const LoginInfoScreen = ({ navigation }) => {
                             style={[styles.button, { backgroundColor: theme.colors.primary }]}
                             onPress={handleUpdatePassword}
                         >
-                            <Text style={styles.buttonText}>パスワードを変更</Text>
+                            <Text style={styles.buttonText}>{t('changePassword')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

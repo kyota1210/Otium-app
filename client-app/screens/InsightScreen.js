@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Dimensions
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRecordsApi } from '../api/records';
 import { useFocusEffect } from '@react-navigation/native';
@@ -12,6 +13,7 @@ const { width } = Dimensions.get('window');
 const InsightScreen = ({ navigation }) => {
     const { authContext, userInfo } = useContext(AuthContext);
     const { theme } = useTheme();
+    const { t } = useLanguage();
     const { fetchRecords } = useRecordsApi();
     const [records, setRecords] = useState([]);
     const [stats, setStats] = useState({
@@ -55,15 +57,15 @@ const InsightScreen = ({ navigation }) => {
 
     const handleLogout = () => {
         Alert.alert(
-            'ログアウト',
-            'ログアウトしますか？',
+            t('logout'),
+            t('logoutConfirm'),
             [
                 {
-                    text: 'キャンセル',
+                    text: t('cancel'),
                     style: 'cancel',
                 },
                 {
-                    text: 'ログアウト',
+                    text: t('logout'),
                     style: 'destructive',
                     onPress: async () => {
                         await authContext.signOut();
@@ -87,7 +89,9 @@ const InsightScreen = ({ navigation }) => {
                 >
                     <Ionicons name="arrow-back" size={24} color={theme.colors.icon} />
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Insight</Text>
+                <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
+                    {t('insights')}
+                </Text>
                 <View style={styles.placeholder} />
             </View>
 
@@ -104,7 +108,9 @@ const InsightScreen = ({ navigation }) => {
                             <Ionicons name="albums" size={24} color={theme.colors.primary} />
                         </View>
                         <Text style={[styles.statValue, { color: theme.colors.text }]}>{stats.totalRecords}</Text>
-                        <Text style={[styles.statLabel, { color: theme.colors.secondaryText }]}>総記録数</Text>
+                        <Text style={[styles.statLabel, { color: theme.colors.secondaryText }]}>
+                            {t('totalRecords')}
+                        </Text>
                     </View>
                     
                     <View style={[styles.statCard, { backgroundColor: theme.colors.card }]}>
@@ -114,7 +120,9 @@ const InsightScreen = ({ navigation }) => {
                             <Ionicons name="calendar" size={24} color="#FF9800" />
                         </View>
                         <Text style={[styles.statValue, { color: theme.colors.text }]}>{stats.thisMonth}</Text>
-                        <Text style={[styles.statLabel, { color: theme.colors.secondaryText }]}>今月</Text>
+                        <Text style={[styles.statLabel, { color: theme.colors.secondaryText }]}>
+                            {t('thisMonth')}
+                        </Text>
                     </View>
                     
                     <View style={[styles.statCard, { backgroundColor: theme.colors.card }]}>
@@ -124,7 +132,9 @@ const InsightScreen = ({ navigation }) => {
                             <Ionicons name="time" size={24} color="#9C27B0" />
                         </View>
                         <Text style={[styles.statValue, { color: theme.colors.text }]}>{stats.thisWeek}</Text>
-                        <Text style={[styles.statLabel, { color: theme.colors.secondaryText }]}>今週</Text>
+                        <Text style={[styles.statLabel, { color: theme.colors.secondaryText }]}>
+                            {t('thisWeek')}
+                        </Text>
                     </View>
                     
                     <View style={[styles.statCard, { backgroundColor: theme.colors.card }]}>
@@ -134,7 +144,9 @@ const InsightScreen = ({ navigation }) => {
                             <Ionicons name="grid" size={24} color="#4CAF50" />
                         </View>
                         <Text style={[styles.statValue, { color: theme.colors.text }]}>{stats.categoriesCount}</Text>
-                        <Text style={[styles.statLabel, { color: theme.colors.secondaryText }]}>カテゴリー</Text>
+                        <Text style={[styles.statLabel, { color: theme.colors.secondaryText }]}>
+                            {t('categories')}
+                        </Text>
                     </View>
                 </View>
 
@@ -142,27 +154,29 @@ const InsightScreen = ({ navigation }) => {
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
                         <Ionicons name="trending-up" size={20} color={theme.colors.primary} />
-                        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>アクティビティ</Text>
+                        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                            {t('activity')}
+                        </Text>
                     </View>
                     <View style={[styles.activityCard, { backgroundColor: theme.colors.card }]}>
                         <View style={styles.activityRow}>
                             <View style={[styles.activityDot, { backgroundColor: theme.colors.primary }]} />
                             <Text style={[styles.activityText, { color: theme.colors.secondaryText }]}>
-                                平均 <Text style={[styles.activityValue, { color: theme.colors.text }]}>
+                                {t('average')} <Text style={[styles.activityValue, { color: theme.colors.text }]}>
                                     {stats.totalRecords > 0 ? Math.round(stats.totalRecords / 12) : 0}
-                                </Text> 件/月
+                                </Text> {t('perMonth')}
                             </Text>
                         </View>
                         <View style={styles.activityRow}>
                             <View style={[styles.activityDot, { backgroundColor: theme.colors.primary }]} />
                             <Text style={[styles.activityText, { color: theme.colors.secondaryText }]}>
-                                最長ストリーク <Text style={[styles.activityValue, { color: theme.colors.text }]}>7</Text> 日
+                                {t('longestStreak')} <Text style={[styles.activityValue, { color: theme.colors.text }]}>7</Text> {t('days')}
                             </Text>
                         </View>
                         <View style={styles.activityRow}>
                             <View style={[styles.activityDot, { backgroundColor: theme.colors.primary }]} />
                             <Text style={[styles.activityText, { color: theme.colors.secondaryText }]}>
-                                お気に入りの時間帯 <Text style={[styles.activityValue, { color: theme.colors.text }]}>午後</Text>
+                                {t('favoriteTime')} <Text style={[styles.activityValue, { color: theme.colors.text }]}>{t('afternoon')}</Text>
                             </Text>
                         </View>
                     </View>
@@ -172,7 +186,9 @@ const InsightScreen = ({ navigation }) => {
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
                         <Ionicons name="pie-chart" size={20} color={theme.colors.primary} />
-                        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>カテゴリー別記録</Text>
+                        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                            {t('recordsByCategory')}
+                        </Text>
                     </View>
                     <View style={[styles.categoryCard, { backgroundColor: theme.colors.card }]}>
                         <CategoryBar label="Café" count={Math.round(stats.totalRecords * 0.3)} total={stats.totalRecords} color="#FF6B6B" icon="cafe" theme={theme} />

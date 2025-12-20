@@ -8,6 +8,7 @@ import { getImageUrl } from '../utils/imageHelper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { SERVER_URL } from '../config';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -56,6 +57,7 @@ export default function RecordListScreen({ navigation }) {
     const { fetchRecords } = useRecordsApi();
     const { userInfo, userToken } = useContext(AuthContext);
     const { theme } = useTheme();
+    const { t } = useLanguage();
     const scrollTimeout = useRef(null);
 
     // カテゴリーを取得する関数
@@ -295,9 +297,9 @@ export default function RecordListScreen({ navigation }) {
                     ) : (
                         <View style={styles.emptyContainer}>
                             <Ionicons name="document-text-outline" size={64} color={theme.colors.border} />
-                            <Text style={[styles.emptyText, { color: theme.colors.border }]}>まだ記録がありません。</Text>
+                            <Text style={[styles.emptyText, { color: theme.colors.border }]}>{t('noRecords')}</Text>
                             <Text style={[styles.emptySubText, { color: theme.colors.inactive }]}>
-                                下の「作成」タブから新しい記録を追加しましょう。
+                                {t('createFirstRecord')}
                             </Text>
                         </View>
                     )}

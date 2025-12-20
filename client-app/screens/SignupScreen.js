@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { StyleSheet, Text, View, TextInput, Button, Alert, TouchableOpacity } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function SignupScreen({ navigation }) {
     const [email, setEmail] = useState('');
@@ -11,10 +12,11 @@ export default function SignupScreen({ navigation }) {
     
     const { authContext } = useContext(AuthContext);
     const { theme } = useTheme();
+    const { t } = useLanguage();
 
     const handleSignup = async () => {
         if (!email || !password) {
-            Alert.alert('エラー', 'メールアドレスとパスワードは必須です。');
+            Alert.alert(t('error'), t('emailPasswordRequired'));
             return;
         }
         setLoading(true);
@@ -22,10 +24,10 @@ export default function SignupScreen({ navigation }) {
         const result = await authContext.signUp(email, displayName, password);
 
         if (result.success) {
-            Alert.alert('登録・ログイン成功', 'メイン画面へ移動します。');
+            Alert.alert(t('signupLoginSuccess'), t('redirectToMain'));
             // 成功した場合、AppNavigatorが自動で画面を切り替えます
         } else {
-             Alert.alert('登録失敗', result.error);
+             Alert.alert(t('signupFailed'), result.error);
         }
 
         setLoading(false);
@@ -33,7 +35,9 @@ export default function SignupScreen({ navigation }) {
 
     return (
         <View style={[styles.container, { backgroundColor: theme.colors.secondaryBackground }]}>
-            <Text style={[styles.title, { color: theme.colors.text }]}>新規ユーザー登録</Text>
+            <Text style={[styles.title, { color: theme.colors.text }]}>
+                {t('newUserRegistration')}
+            </Text>
             
             <TextInput 
                 style={[styles.input, {
@@ -41,7 +45,7 @@ export default function SignupScreen({ navigation }) {
                     borderColor: theme.colors.border,
                     color: theme.colors.text
                 }]}
-                placeholder="メールアドレス" 
+                placeholder={t('emailAddress')} 
                 placeholderTextColor={theme.colors.inactive}
                 value={email} 
                 onChangeText={setEmail} 
@@ -54,7 +58,7 @@ export default function SignupScreen({ navigation }) {
                     borderColor: theme.colors.border,
                     color: theme.colors.text
                 }]}
-                placeholder="表示名（オプション）" 
+                placeholder={t('displayNameOptional')} 
                 placeholderTextColor={theme.colors.inactive}
                 value={displayName} 
                 onChangeText={setDisplayName}
@@ -65,17 +69,24 @@ export default function SignupScreen({ navigation }) {
                     borderColor: theme.colors.border,
                     color: theme.colors.text
                 }]}
-                placeholder="パスワード" 
+                placeholder={t('password')} 
                 placeholderTextColor={theme.colors.inactive}
                 value={password} 
                 onChangeText={setPassword} 
                 secureTextEntry
             />
 
-            <Button title={loading ? "登録中..." : "サインアップ"} onPress={handleSignup} disabled={loading} color={theme.colors.primary}/>
+            <Button 
+                title={loading ? t('signingUp') : t('signUp')} 
+                onPress={handleSignup} 
+                disabled={loading} 
+                color={theme.colors.primary}
+            />
 
             <TouchableOpacity style={styles.backLink} onPress={() => navigation.goBack()}>
-                <Text style={[styles.backText, { color: theme.colors.primary }]}>ログイン画面に戻る</Text>
+                <Text style={[styles.backText, { color: theme.colors.primary }]}>
+                    {t('backToLogin')}
+                </Text>
             </TouchableOpacity>
         </View>
     );
