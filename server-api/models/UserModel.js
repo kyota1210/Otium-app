@@ -33,6 +33,17 @@ class UserModel {
         const [result] = await db.query(sql, [email, userName, passwordHash]);
         return result.insertId;
     }
+
+    /**
+     * ユーザー名を更新
+     * @param {number} id 
+     * @param {string} userName 
+     */
+    static async updateUserName(id, userName) {
+        const sql = 'UPDATE users SET user_name = ? WHERE id = ?';
+        const [result] = await db.query(sql, [userName, id]);
+        return result.affectedRows;
+    }
 }
 
 module.exports = UserModel;

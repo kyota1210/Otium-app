@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const UserModel = require('./models/UserModel'); // モデルを読み込み
+const UserAvatarModel = require('./models/UserAvatarModel');
 const auth = require('./middleware/auth'); // 認証ミドルウェア
 
 // JWTの秘密鍵は.envから取得
@@ -103,12 +104,16 @@ router.get('/me', auth, async (req, res) => {
             return res.status(404).json({ message: 'ユーザーが見つかりません。' });
         }
 
+        // アバター画像を取得
+        const avatar = await UserAvatarModel.findByUserId(req.user.id);
+
         // パスワードハッシュを除外してユーザー情報を返す
         res.status(200).json({
             user: { 
                 id: user.id, 
                 user_name: user.user_name,
-                email: user.email
+                email: user.email,
+                avatar_url: avatar ? avatar.image_url : null
             }
         });
     } catch (error) {

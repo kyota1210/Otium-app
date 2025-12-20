@@ -7,6 +7,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { getImageUrl } from '../utils/imageHelper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../context/AuthContext';
+import { SERVER_URL } from '../config';
 
 export default function RecordListScreen({ navigation }) {
     const [records, setRecords] = useState([]);
@@ -96,7 +97,14 @@ export default function RecordListScreen({ navigation }) {
                     onPress={() => navigation.navigate('ProfileEdit')}
                     activeOpacity={0.7}
                 >
-                    <Ionicons name="person-circle-outline" size={85} color="#333" />
+                    {userInfo?.avatar_url ? (
+                        <Image 
+                            source={{ uri: `${SERVER_URL}/${userInfo.avatar_url}` }} 
+                            style={styles.userAvatar}
+                        />
+                    ) : (
+                        <Ionicons name="person-circle-outline" size={70} color="#333" />
+                    )}
                 </TouchableOpacity>
                 <View style={styles.userInfoText}>
                     <Text style={styles.userNameText}>{userInfo?.user_name || 'ゲスト'}</Text>
@@ -231,14 +239,26 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 6,
-        paddingTop: 0,
+        paddingTop: 4,
         paddingBottom: 6,
         backgroundColor: '#fff',
         borderBottomWidth: 1,
         borderBottomColor: '#e0e0e0',
     },
     userIconContainer: {
+        marginLeft: 6,
         marginRight: 8,
+        width: 70,
+        height: 70,
+        borderRadius: 35,
+        overflow: 'hidden',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    userAvatar: {
+        width: 70,
+        height: 70,
+        borderRadius: 35,
     },
     userInfoText: {
         flex: 0,

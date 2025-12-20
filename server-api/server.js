@@ -1,10 +1,9 @@
-// server-api/server.js
-
 const express = require('express');
 const cors = require('cors');
 const db = require('./db');
 const authRoutes = require('./authRoutes'); 
 const recordsRoutes = require('./recordsRoutes');
+const userRoutes = require('./userRoutes');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -39,6 +38,9 @@ app.use('/api/auth', authRoutes);
 
 // 記録ルート (認証が必要)
 app.use('/api/records', recordsRoutes);
+
+// ユーザールート (認証が必要)
+app.use('/api/users', userRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

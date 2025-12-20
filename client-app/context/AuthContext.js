@@ -83,6 +83,11 @@ export const AuthProvider = ({ children }) => {
                 console.error('ログアウトエラー', e);
             }
         },
+
+        // ユーザー情報を更新
+        updateUserInfo: (newUserInfo) => {
+            setUserInfo(newUserInfo);
+        },
     }), []);
 
 

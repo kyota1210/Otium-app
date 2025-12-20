@@ -1,14 +1,20 @@
 import React, { useContext, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
+import { updateProfile } from '../api/user';
+import { SERVER_URL } from '../config';
 
 const ProfileEditScreen = ({ navigation }) => {
-    const { userInfo } = useContext(AuthContext);
+    const { userInfo, userToken, authContext } = useContext(AuthContext);
     const [userName, setUserName] = useState(userInfo?.user_name || '');
-    const [avatarUri, setAvatarUri] = useState(null);
+    const [avatarUri, setAvatarUri] = useState(
+        userInfo?.avatar_url ? `${SERVER_URL}/${userInfo.avatar_url}` : null
+    );
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handlePickImage = async () => {
         // パーミッションを要求
@@ -28,15 +34,43 @@ const ProfileEditScreen = ({ navigation }) => {
         });
 
         if (!result.canceled) {
-            setAvatarUri(result.assets[0].uri);
+            const uri = result.assets[0].uri;
+            setAvatarUri(uri);
+            
+            // ファイル情報を保存（アップロード用）
+            const fileName = uri.split('/').pop();
+            const fileType = `image/${fileName.split('.').pop()}`;
+            setSelectedFile({
+                uri: uri,
+                name: fileName,
+                type: fileType,
+            });
         }
     };
 
-    const handleSave = () => {
-        // TODO: プロフィール更新APIを呼び出す（アバター画像もアップロード）
-        Alert.alert('保存完了', 'プロフィールを更新しました', [
-            { text: 'OK', onPress: () => navigation.goBack() }
-        ]);
+    const handleSave = async () => {
+        if (!userName.trim()) {
+            Alert.alert('エラー', 'ユーザー名を入力してください');
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            // プロフィール更新APIを呼び出す
+            const data = await updateProfile(userToken, userName, selectedFile);
+            
+            // AuthContextのユーザー情報を更新
+            authContext.updateUserInfo(data.user);
+            
+            Alert.alert('保存完了', 'プロフィールを更新しました', [
+                { text: 'OK', onPress: () => navigation.goBack() }
+            ]);
+        } catch (error) {
+            console.error('プロフィール更新エラー:', error);
+            Alert.alert('エラー', error.message || 'プロフィールの更新に失敗しました');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -47,14 +81,19 @@ const ProfileEditScreen = ({ navigation }) => {
                     style={styles.backButton}
                     onPress={() => navigation.goBack()}
                 >
-                    <Ionicons name="arrow-back" size={24} color="#fff" />
+                    <Ionicons name="arrow-back" size={24} color="#333" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>プロフィール設定</Text>
                 <TouchableOpacity 
                     style={styles.saveButton}
                     onPress={handleSave}
+                    disabled={isLoading}
                 >
-                    <Text style={styles.saveButtonText}>保存</Text>
+                    {isLoading ? (
+                        <ActivityIndicator size="small" color="#007AFF" />
+                    ) : (
+                        <Text style={styles.saveButtonText}>保存</Text>
+                    )}
                 </TouchableOpacity>
             </View>
 
@@ -100,7 +139,7 @@ const ProfileEditScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#667eea',
+        backgroundColor: '#fff',
     },
     topNavBar: {
         flexDirection: 'row',
@@ -108,9 +147,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingVertical: 12,
-        backgroundColor: '#667eea',
+        backgroundColor: '#fff',
         borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255, 255, 255, 0.2)',
+        borderBottomColor: '#e0e0e0',
     },
     backButton: {
         padding: 4,
@@ -118,14 +157,14 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#fff',
+        color: '#333',
     },
     saveButton: {
         padding: 4,
     },
     saveButtonText: {
         fontSize: 16,
-        color: '#fff',
+        color: '#007AFF',
         fontWeight: '600',
     },
     scrollView: {
@@ -187,7 +226,7 @@ const styles = StyleSheet.create({
     },
     formSection: {
         backgroundColor: '#fff',
-        marginTop: 20,
+        marginTop: 0,
         paddingHorizontal: 20,
         paddingVertical: 16,
     },
