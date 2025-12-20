@@ -1,11 +1,11 @@
 import React, { useContext } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ProfileScreen = () => {
-    const { authContext, userInfo } = useContext(AuthContext);
+    const { userInfo, authContext } = useContext(AuthContext);
 
     const handleLogout = () => {
         Alert.alert(
@@ -30,47 +30,94 @@ const ProfileScreen = () => {
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
-            {/* ユーザー情報セクション */}
-            <View style={styles.profileSection}>
-                <View style={styles.avatarContainer}>
-                    <Ionicons name="person-circle-outline" size={100} color="#007AFF" />
+            {/* トップナビゲーションバー */}
+            <View style={styles.topNavBar}>
+                <Text style={styles.headerTitle}>設定</Text>
+            </View>
+
+            <ScrollView style={styles.scrollView}>
+                {/* アカウント情報セクション */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>アカウント</Text>
+                    <View style={styles.menuSection}>
+                        <View style={styles.menuItem}>
+                            <Ionicons name="person-outline" size={24} color="#333" />
+                            <View style={styles.menuTextContainer}>
+                                <Text style={styles.menuText}>ユーザー名</Text>
+                                <Text style={styles.menuSubText}>{userInfo?.user_name || 'ユーザー'}</Text>
+                            </View>
+                        </View>
+                        <View style={styles.menuItem}>
+                            <Ionicons name="mail-outline" size={24} color="#333" />
+                            <View style={styles.menuTextContainer}>
+                                <Text style={styles.menuText}>メールアドレス</Text>
+                                <Text style={styles.menuSubText}>{userInfo?.email || ''}</Text>
+                            </View>
+                        </View>
+                    </View>
                 </View>
-                
-                {userInfo && (
-                    <>
-                        <Text style={styles.userName}>{userInfo.user_name || 'ユーザー'}</Text>
-                        <Text style={styles.userEmail}>{userInfo.email || ''}</Text>
-                    </>
-                )}
-                
-                {!userInfo && (
-                    <Text style={styles.userName}>Insight</Text>
-                )}
-            </View>
 
-            {/* メニューセクション */}
-            <View style={styles.menuSection}>
-                {/* 今後の拡張用: 設定項目などを追加可能 */}
-                {/* 
-                <TouchableOpacity style={styles.menuItem}>
-                    <Ionicons name="settings-outline" size={24} color="#333" />
-                    <Text style={styles.menuText}>設定</Text>
-                    <Ionicons name="chevron-forward" size={24} color="#999" />
-                </TouchableOpacity>
-                */}
-            </View>
+                {/* アプリ設定セクション */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>アプリ設定</Text>
+                    <View style={styles.menuSection}>
+                        <TouchableOpacity style={styles.menuItem}>
+                            <Ionicons name="notifications-outline" size={24} color="#333" />
+                            <Text style={styles.menuText}>通知設定</Text>
+                            <Ionicons name="chevron-forward" size={24} color="#999" />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.menuItem}>
+                            <Ionicons name="language-outline" size={24} color="#333" />
+                            <Text style={styles.menuText}>言語設定</Text>
+                            <Ionicons name="chevron-forward" size={24} color="#999" />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.menuItem}>
+                            <Ionicons name="color-palette-outline" size={24} color="#333" />
+                            <Text style={styles.menuText}>テーマ</Text>
+                            <Ionicons name="chevron-forward" size={24} color="#999" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
 
-            {/* ログアウトボタン */}
-            <View style={styles.logoutSection}>
-                <TouchableOpacity 
-                    style={styles.logoutButton} 
-                    onPress={handleLogout}
-                    activeOpacity={0.7}
-                >
-                    <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
-                    <Text style={styles.logoutText}>ログアウト</Text>
-                </TouchableOpacity>
-            </View>
+                {/* その他セクション */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>その他</Text>
+                    <View style={styles.menuSection}>
+                        <TouchableOpacity style={styles.menuItem}>
+                            <Ionicons name="help-circle-outline" size={24} color="#333" />
+                            <Text style={styles.menuText}>ヘルプ</Text>
+                            <Ionicons name="chevron-forward" size={24} color="#999" />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.menuItem}>
+                            <Ionicons name="information-circle-outline" size={24} color="#333" />
+                            <Text style={styles.menuText}>アプリについて</Text>
+                            <Ionicons name="chevron-forward" size={24} color="#999" />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.menuItem}>
+                            <Ionicons name="document-text-outline" size={24} color="#333" />
+                            <Text style={styles.menuText}>利用規約</Text>
+                            <Ionicons name="chevron-forward" size={24} color="#999" />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.menuItem}>
+                            <Ionicons name="shield-checkmark-outline" size={24} color="#333" />
+                            <Text style={styles.menuText}>プライバシーポリシー</Text>
+                            <Ionicons name="chevron-forward" size={24} color="#999" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* ログアウトボタン */}
+                <View style={styles.logoutSection}>
+                    <TouchableOpacity 
+                        style={styles.logoutButton} 
+                        onPress={handleLogout}
+                        activeOpacity={0.6}
+                    >
+                        <Ionicons name="log-out-outline" size={20} color="#FF3B30" />
+                        <Text style={styles.logoutText}>ログアウト</Text>
+                    </TouchableOpacity>
+                </View>
+            </ScrollView>
         </SafeAreaView>
     );
 };
@@ -80,31 +127,37 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#f5f5f5',
     },
-    profileSection: {
-        backgroundColor: '#fff',
+    topNavBar: {
+        flexDirection: 'row',
+        justifyContent: 'center',
         alignItems: 'center',
-        paddingVertical: 40,
-        paddingHorizontal: 20,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: '#fff',
         borderBottomWidth: 1,
-        borderBottomColor: '#eee',
+        borderBottomColor: '#e0e0e0',
     },
-    avatarContainer: {
-        marginBottom: 16,
-    },
-    userName: {
-        fontSize: 24,
+    headerTitle: {
+        fontSize: 20,
         fontWeight: 'bold',
         color: '#333',
-        marginBottom: 8,
     },
-    userEmail: {
-        fontSize: 16,
+    scrollView: {
+        flex: 1,
+    },
+    section: {
+        marginTop: 20,
+    },
+    sectionTitle: {
+        fontSize: 14,
+        fontWeight: '600',
         color: '#666',
+        paddingHorizontal: 20,
+        paddingBottom: 8,
     },
     menuSection: {
         backgroundColor: '#fff',
-        marginTop: 20,
-        paddingVertical: 8,
+        paddingVertical: 0,
     },
     menuItem: {
         flexDirection: 'row',
@@ -114,37 +167,36 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: '#f0f0f0',
     },
+    menuTextContainer: {
+        flex: 1,
+        marginLeft: 12,
+    },
     menuText: {
         flex: 1,
         fontSize: 16,
         color: '#333',
         marginLeft: 12,
     },
+    menuSubText: {
+        fontSize: 14,
+        color: '#666',
+        marginTop: 2,
+    },
     logoutSection: {
-        marginTop: 'auto',
-        padding: 20,
-        paddingBottom: 40,
+        marginTop: 40,
+        marginBottom: 40,
+        paddingHorizontal: 20,
     },
     logoutButton: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#fff',
-        paddingVertical: 16,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#FF3B30',
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 2,
+        paddingVertical: 12,
     },
     logoutText: {
-        fontSize: 18,
-        fontWeight: '600',
+        fontSize: 14,
         color: '#FF3B30',
-        marginLeft: 8,
+        marginLeft: 6,
     },
 });
 

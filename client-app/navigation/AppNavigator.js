@@ -12,6 +12,7 @@ import RecordListScreen from '../screens/RecordListScreen';
 import CreateRecordScreen from '../screens/CreateRecordScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ThreadScreen from '../screens/ThreadScreen';
+import InsightScreen from '../screens/InsightScreen';
 // ↓ 追加
 import RecordDetailScreen from '../screens/RecordDetailScreen';
 
@@ -36,8 +37,8 @@ const MainTabNavigator = () => {
           } else if (route.name === 'Thread') {
             iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
           } else if (route.name === 'MyPage') {
-            // 「マイページ」→「Insight」
-            iconName = focused ? 'analytics' : 'analytics-outline';
+            // 「マイページ」→「設定」
+            iconName = focused ? 'settings' : 'settings-outline';
           }
 
           // アイコンサイズを少し大きく（デフォルト24→30）
@@ -71,7 +72,7 @@ const MainTabNavigator = () => {
       <Tab.Screen 
         name="MyPage" 
         component={ProfileScreen} 
-        options={{ title: 'Insight' }} 
+        options={{ title: '設定' }} 
       />
     </Tab.Navigator>
   );
@@ -117,6 +118,15 @@ const AppNavigator = () => {
               headerShown: true, 
               title: '詳細',
               headerBackTitleVisible: false 
+            }} 
+          />
+          {/* ↓ 追加: インサイト画面 */}
+          <Stack.Screen 
+            name="Insight" 
+            component={InsightScreen} 
+            options={{ 
+              headerShown: false,
+              presentation: 'card'
             }} 
           />
         </>

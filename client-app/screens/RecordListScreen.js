@@ -76,9 +76,17 @@ export default function RecordListScreen({ navigation }) {
             {/* トップナビゲーションバー */}
             <View style={styles.topNavBar}>
                 <Text style={styles.appName}>Otium</Text>
-                <TouchableOpacity style={styles.notificationButton}>
-                    <Ionicons name="notifications-outline" size={24} color="#333" />
-                </TouchableOpacity>
+                <View style={styles.iconButtons}>
+                    <TouchableOpacity 
+                        style={styles.insightButton}
+                        onPress={() => navigation.navigate('Insight')}
+                    >
+                        <Ionicons name="analytics-outline" size={24} color="#333" />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.notificationButton}>
+                        <Ionicons name="notifications-outline" size={24} color="#333" />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {/* ユーザー情報ヘッダー */}
@@ -202,6 +210,14 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
         color: '#333',
+    },
+    iconButtons: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    insightButton: {
+        padding: 4,
+        marginRight: 12,
     },
     notificationButton: {
         padding: 4,
