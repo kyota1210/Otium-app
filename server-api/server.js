@@ -46,6 +46,7 @@ app.use('/api/users', userRoutes);
 // カテゴリールート (認証が必要)
 app.use('/api/categories', categoryRoutes);
 
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server is running on http://0.0.0.0:${PORT}`);
+    console.log(`Access from network: http://192.168.1.104:${PORT}`);
 });

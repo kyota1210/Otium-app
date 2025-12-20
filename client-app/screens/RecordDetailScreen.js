@@ -1,12 +1,49 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRecordsApi } from '../api/records';
 import { getImageUrl } from '../utils/imageHelper';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function RecordDetailScreen({ route, navigation }) {
-    const { record } = route.params;
-    const { deleteRecord } = useRecordsApi();
+    const { record: initialRecord } = route.params;
+    const [record, setRecord] = useState(initialRecord);
+    const [loading, setLoading] = useState(false);
+    const [imageAspectRatio, setImageAspectRatio] = useState(1);
+    const { deleteRecord, fetchRecordById } = useRecordsApi();
+
+    // 画面が表示されるたびに最新データを取得
+    useFocusEffect(
+        useCallback(() => {
+            const loadRecord = async () => {
+                try {
+                    const updatedRecord = await fetchRecordById(initialRecord.id);
+                    setRecord(updatedRecord);
+                } catch (error) {
+                    console.error('記録の取得に失敗しました:', error);
+                }
+            };
+            loadRecord();
+        }, [initialRecord.id, fetchRecordById])
+    );
+
+    // 画像の縦横比を取得
+    const imageUrl = getImageUrl(record.image_url);
+    
+    React.useEffect(() => {
+        if (imageUrl) {
+            Image.getSize(
+                imageUrl,
+                (width, height) => {
+                    setImageAspectRatio(width / height);
+                },
+                (error) => {
+                    console.error('画像サイズの取得に失敗:', error);
+                    setImageAspectRatio(16 / 9); // デフォルト値
+                }
+            );
+        }
+    }, [imageUrl]);
 
     const handleDelete = () => {
         Alert.alert(
@@ -31,31 +68,27 @@ export default function RecordDetailScreen({ route, navigation }) {
     };
 
     const handleEdit = () => {
-        // ここに編集画面への遷移処理などを記述
-        Alert.alert("通知", "編集ボタンが押されました");
+        navigation.navigate('EditRecord', { record });
     };
 
     // 日付の表示形式を調整
     const date = new Date(record.date_logged);
     const dateString = date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
 
-    // 画像パスの解決
-    const imageUrl = getImageUrl(record.image_url);
-
     return (
         <View style={styles.container}>
             <ScrollView contentContainerStyle={styles.content}>
                 {/* 画像があれば表示、なければプレースホルダー */}
-                <View style={styles.imageContainer}>
-                    {imageUrl ? (
+                {imageUrl ? (
+                    <View style={[styles.imageContainer, { aspectRatio: imageAspectRatio }]}>
                         <Image source={{ uri: imageUrl }} style={styles.image} />
-                    ) : (
-                        <View style={styles.placeholderImage}>
-                            <Ionicons name="image-outline" size={80} color="#ccc" />
-                            <Text style={styles.placeholderText}>No Image</Text>
-                        </View>
-                    )}
-                </View>
+                    </View>
+                ) : (
+                    <View style={styles.placeholderImageContainer}>
+                        <Ionicons name="image-outline" size={80} color="#ccc" />
+                        <Text style={styles.placeholderText}>No Image</Text>
+                    </View>
+                )}
 
                 <View style={styles.infoContainer}>
                     <Text style={styles.date}>{dateString}</Text>
@@ -82,12 +115,16 @@ const styles = StyleSheet.create({
     content: { paddingBottom: 80 },
     imageContainer: {
         width: '100%',
-        height: 250,
-        backgroundColor: '#f0f0f0',
+        backgroundColor: '#000',
     },
-    image: { width: '100%', height: '100%', resizeMode: 'cover' },
-    placeholderImage: {
-        flex: 1,
+    image: { 
+        width: '100%', 
+        height: '100%', 
+        resizeMode: 'contain' 
+    },
+    placeholderImageContainer: {
+        width: '100%',
+        height: 250,
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#e1e1e1',

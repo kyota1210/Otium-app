@@ -27,6 +27,21 @@ class RecordModel {
     }
 
     /**
+     * 特定の記録を取得
+     */
+    static async findById(id, userId) {
+        const sql = `
+            SELECT r.id, r.title, r.description, r.created_at, r.date_logged, r.image_url, r.category_id,
+                   c.name as category_name, c.icon as category_icon, c.color as category_color
+            FROM records r
+            LEFT JOIN categories c ON r.category_id = c.id
+            WHERE r.id = ? AND r.user_id = ? AND r.invalidation_flag = 0
+        `;
+        const [rows] = await db.query(sql, [id, userId]);
+        return rows[0];
+    }
+
+    /**
      * 新しい記録を作成
      */
     static async create({ userId, title, description, dateLogged, imageUrl, categoryId }) {
@@ -42,13 +57,18 @@ class RecordModel {
     /**
      * 記録を更新（IDと所有者を確認）
      */
-    static async update(id, userId, { title, description, categoryId }) {
-        const sql = `
-            UPDATE records 
-            SET title = ?, description = ?, category_id = ?
-            WHERE id = ? AND user_id = ?
-        `;
-        const [result] = await db.query(sql, [title, description, categoryId || null, id, userId]);
+    static async update(id, userId, { title, description, categoryId, dateLogged, imageUrl }) {
+        let sql = 'UPDATE records SET title = ?, description = ?, category_id = ?, date_logged = ?';
+        const params = [title, description, categoryId || null, dateLogged, id, userId];
+
+        if (imageUrl) {
+            sql = 'UPDATE records SET title = ?, description = ?, category_id = ?, date_logged = ?, image_url = ?';
+            params.splice(4, 0, imageUrl); // imageUrlを5番目に挿入
+        }
+
+        sql += ' WHERE id = ? AND user_id = ?';
+
+        const [result] = await db.query(sql, params);
         return result.affectedRows > 0; // 更新できたかどうかをbooleanで返す
     }
 

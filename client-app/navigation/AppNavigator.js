@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Text, View, ActivityIndicator, StyleSheet } from 'react-native';
+import { Text, View, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/AuthContext';
 
@@ -118,11 +118,19 @@ const AppNavigator = () => {
           <Stack.Screen 
             name="RecordDetail" 
             component={RecordDetailScreen} 
-            options={{ 
+            options={({ navigation }) => ({ 
               headerShown: true, 
               title: '詳細',
-              headerBackTitleVisible: false 
-            }} 
+              headerBackTitleVisible: false,
+              headerLeft: () => (
+                <TouchableOpacity 
+                  onPress={() => navigation.goBack()}
+                  style={{ marginLeft: 8 }}
+                >
+                  <Ionicons name="arrow-back" size={24} color="#333" />
+                </TouchableOpacity>
+              )
+            })} 
           />
           {/* ↓ 追加: インサイト画面 */}
           <Stack.Screen 
@@ -165,6 +173,14 @@ const AppNavigator = () => {
             options={{ 
               headerShown: false,
               presentation: 'card'
+            }} 
+          />
+          <Stack.Screen 
+            name="EditRecord" 
+            component={CreateRecordScreen} 
+            options={{ 
+              headerShown: false,
+              presentation: 'modal'
             }} 
           />
         </>

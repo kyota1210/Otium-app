@@ -103,26 +103,61 @@ router.get('/', async (req, res) => {
 });
 
 // ------------------------------------------------
+// 2.5 特定の記録を取得
+// GET /api/records/:id
+// ------------------------------------------------
+router.get('/:id', async (req, res) => {
+    const user_id = req.user.id;
+    const { id } = req.params;
+
+    try {
+        const record = await RecordModel.findById(id, user_id);
+        if (!record) {
+            return res.status(404).json({ message: '記録が見つかりません。' });
+        }
+        res.status(200).json(record);
+    } catch (error) {
+        console.error('記録取得エラー:', error);
+        res.status(500).json({ message: 'サーバーエラーが発生しました。' });
+    }
+});
+
+// ------------------------------------------------
 // 3. 記録の更新 (Update)
 // PUT /api/records/:id
 // ------------------------------------------------
-router.put('/:id', async (req, res) => {
+router.put('/:id', (req, res, next) => {
+    upload.single('image')(req, res, (err) => {
+        if (err) {
+            console.error('Multer Error:', err);
+            return res.status(400).json({ message: '画像のアップロードに失敗しました。', error: err.message });
+        }
+        next();
+    });
+}, async (req, res) => {
     const { id } = req.params;
-    const { title, description, category_id } = req.body;
+    const { title, description, category_id, date_logged } = req.body;
     const user_id = req.user.id;
+
+    let imageUrl = null;
+    if (req.file) {
+        imageUrl = `uploads/${req.file.filename}`;
+    }
 
     try {
         const success = await RecordModel.update(id, user_id, { 
             title, 
             description,
-            categoryId: category_id || null
+            categoryId: category_id || null,
+            dateLogged: date_logged,
+            imageUrl
         });
 
         if (!success) {
             return res.status(404).json({ message: '記録が見つからないか、更新権限がありません。' });
         }
 
-        res.status(200).json({ message: '記録が更新されました。' });
+        res.status(200).json({ message: '記録が更新されました。', imageUrl });
     } catch (error) {
         console.error('記録更新エラー:', error);
         res.status(500).json({ message: 'サーバーエラーが発生しました。' });

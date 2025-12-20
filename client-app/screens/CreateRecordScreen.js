@@ -1,24 +1,53 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, TextInput, Alert, Text, ScrollView, Image, TouchableOpacity, Platform, Modal, KeyboardAvoidingView } from 'react-native';
+import React, { useState, useEffect, useContext } from 'react';
+import { StyleSheet, View, TextInput, Alert, Text, ScrollView, Image, TouchableOpacity, Platform, Modal, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import { useRecordsApi } from '../api/records';
+import { fetchCategories } from '../api/categories';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AuthContext } from '../context/AuthContext';
+import { getImageUrl } from '../utils/imageHelper';
 
-export default function CreateRecordScreen({ navigation }) {
+export default function CreateRecordScreen({ navigation, route }) {
     const insets = useSafeAreaInsets();
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
+    const { userToken } = useContext(AuthContext);
+    
+    // 編集モードの判定
+    const editRecord = route.params?.record;
+    const isEditMode = !!editRecord;
+
+    const [title, setTitle] = useState(editRecord?.title || '');
+    const [description, setDescription] = useState(editRecord?.description || '');
     
     // 日付管理
-    const [dateLogged, setDateLogged] = useState(new Date());
+    const [dateLogged, setDateLogged] = useState(editRecord ? new Date(editRecord.date_logged) : new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
 
-    const [imageUri, setImageUri] = useState(null);
+    const [imageUri, setImageUri] = useState(editRecord?.image_url ? getImageUrl(editRecord.image_url) : null);
     const [loading, setLoading] = useState(false);
+    
+    // カテゴリー管理
+    const [categories, setCategories] = useState([]);
+    const [selectedCategoryId, setSelectedCategoryId] = useState(editRecord?.category_id || null);
+    const [categoriesLoading, setCategoriesLoading] = useState(true);
 
-    const { createRecord } = useRecordsApi();
+    const { createRecord, updateRecord } = useRecordsApi();
+
+    // カテゴリーを取得
+    useEffect(() => {
+        const loadCategories = async () => {
+            try {
+                const data = await fetchCategories(userToken);
+                setCategories(data);
+            } catch (error) {
+                console.error('カテゴリー取得エラー:', error);
+            } finally {
+                setCategoriesLoading(false);
+            }
+        };
+        loadCategories();
+    }, [userToken]);
 
     // 日付変更ハンドラ
     const onChangeDate = (event, selectedDate) => {
@@ -45,8 +74,7 @@ export default function CreateRecordScreen({ navigation }) {
 
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [4, 3],
+            allowsEditing: false,  // トリミングを無効化して元の縦横比を保持
             quality: 0.8,
         });
 
@@ -55,7 +83,7 @@ export default function CreateRecordScreen({ navigation }) {
         }
     };
 
-    const handleCreate = async () => {
+    const handleSave = async () => {
         if (!dateLogged) {
             Alert.alert('エラー', '日付は必須です。');
             return;
@@ -63,20 +91,29 @@ export default function CreateRecordScreen({ navigation }) {
 
         setLoading(true);
         try {
-            await createRecord({ 
+            const recordData = { 
                 title,
                 description, 
                 date_logged: dateLogged.toISOString().split('T')[0], 
-                imageUri 
-            });
-            
-            Alert.alert('成功', '新しい記録が追加されました。');
-            setTitle('');
-            setDescription('');
-            setImageUri(null);
-            navigation.goBack(); 
+                imageUri,
+                category_id: selectedCategoryId
+            };
+
+            if (isEditMode) {
+                await updateRecord(editRecord.id, recordData);
+                Alert.alert('成功', '記録が更新されました。');
+                navigation.goBack();
+            } else {
+                await createRecord(recordData);
+                Alert.alert('成功', '新しい記録が追加されました。');
+                setTitle('');
+                setDescription('');
+                setImageUri(null);
+                setSelectedCategoryId(null);
+                navigation.navigate('Home'); 
+            }
         } catch (error) {
-            Alert.alert('作成失敗', error.message);
+            Alert.alert(isEditMode ? '更新失敗' : '作成失敗', error.message);
         } finally {
             setLoading(false);
         }
@@ -89,18 +126,34 @@ export default function CreateRecordScreen({ navigation }) {
     });
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={styles.container} edges={isEditMode ? ['bottom'] : ['top']}>
             <KeyboardAvoidingView 
                 style={styles.container} 
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
             >
+                {isEditMode && (
+                    <View style={styles.header}>
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButton}>
+                            <Ionicons name="close" size={28} color="#333" />
+                        </TouchableOpacity>
+                        <Text style={styles.headerTitle}>記録を編集</Text>
+                        <TouchableOpacity onPress={handleSave} disabled={loading} style={styles.saveButton}>
+                            {loading ? (
+                                <ActivityIndicator size="small" color="#007AFF" />
+                            ) : (
+                                <Text style={styles.saveButtonText}>更新</Text>
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                )}
+                
                 <ScrollView 
                     contentContainerStyle={styles.scrollContent}
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
-                    {/* 画像選択エリア (flexで伸縮) */}
+                    {/* 画像選択エリア */}
                     <View style={styles.imageSection}>
                         {imageUri ? (
                             <View style={styles.imagePreviewContainer}>
@@ -172,6 +225,39 @@ export default function CreateRecordScreen({ navigation }) {
                         </View>
 
                         <View style={styles.inputGroup}>
+                            <Text style={styles.label}>カテゴリー</Text>
+                            {categoriesLoading ? (
+                                <ActivityIndicator size="small" color="#007AFF" />
+                            ) : (
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryPicker}>
+                                    {categories.map(category => (
+                                        <TouchableOpacity
+                                            key={category.id}
+                                            style={[
+                                                styles.categoryOption,
+                                                selectedCategoryId === category.id && styles.categoryOptionSelected,
+                                                { borderColor: selectedCategoryId === category.id ? (category.color || '#007AFF') : '#eee' }
+                                            ]}
+                                            onPress={() => setSelectedCategoryId(category.id === selectedCategoryId ? null : category.id)}
+                                        >
+                                            <Ionicons 
+                                                name={category.icon || 'folder-outline'} 
+                                                size={18} 
+                                                color={selectedCategoryId === category.id ? (category.color || '#007AFF') : '#666'} 
+                                            />
+                                            <Text style={[
+                                                styles.categoryOptionText,
+                                                selectedCategoryId === category.id && { color: category.color || '#007AFF', fontWeight: 'bold' }
+                                            ]}>
+                                                {category.name}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </ScrollView>
+                            )}
+                        </View>
+
+                        <View style={styles.inputGroup}>
                             <Text style={styles.label}>タイトル</Text>
                             <TextInput
                                 style={styles.input}
@@ -181,7 +267,7 @@ export default function CreateRecordScreen({ navigation }) {
                             />
                         </View>
 
-                        {/* コメントエリア (flexで伸縮) */}
+                        {/* コメントエリア */}
                         <View style={styles.commentGroup}>
                             <Text style={styles.label}>コメント</Text>
                             <TextInput
@@ -194,17 +280,19 @@ export default function CreateRecordScreen({ navigation }) {
                         </View>
                     </View>
 
-                    {/* 作成ボタン */}
-                    <TouchableOpacity
-                        style={[styles.createButton, loading && styles.disabledButton]}
-                        onPress={handleCreate}
-                        disabled={loading}
-                    >
-                        <Text style={styles.createButtonText}>
-                            {loading ? "作成中..." : "作成する"}
-                        </Text>
-                        {!loading && <Ionicons name="checkmark-circle-outline" size={24} color="#fff" style={{ marginLeft: 8 }} />}
-                    </TouchableOpacity>
+                    {/* 作成ボタン（新規作成モードのみ） */}
+                    {!isEditMode && (
+                        <TouchableOpacity
+                            style={[styles.createButton, loading && styles.disabledButton]}
+                            onPress={handleSave}
+                            disabled={loading}
+                        >
+                            <Text style={styles.createButtonText}>
+                                {loading ? "作成中..." : "作成する"}
+                            </Text>
+                            {!loading && <Ionicons name="checkmark-circle-outline" size={24} color="#fff" style={{ marginLeft: 8 }} />}
+                        </TouchableOpacity>
+                    )}
                 </ScrollView>
             </KeyboardAvoidingView>
         </SafeAreaView>
@@ -216,27 +304,50 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#fff',
     },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f0f0f0',
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    closeButton: {
+        padding: 4,
+    },
+    saveButton: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+    },
+    saveButtonText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#007AFF',
+    },
     scrollContent: {
         flexGrow: 1,
-        padding: 20,
-        paddingBottom: 20,
-        justifyContent: 'space-between', 
+        padding: 16,
+        paddingBottom: 16,
     },
     formSection: {
-        flex: 1, // 入力エリア全体も伸縮させる
-        justifyContent: 'space-between',
+        marginTop: 12,
     },
     inputGroup: {
         marginBottom: 12, 
     },
     commentGroup: {
-        flex: 1, 
-        marginBottom: 16,
+        marginBottom: 12,
     },
     label: {
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: '600',
-        marginBottom: 6,
+        marginBottom: 4,
         color: '#555',
     },
     required: {
@@ -245,25 +356,23 @@ const styles = StyleSheet.create({
     input: {
         borderWidth: 1,
         borderColor: '#eee',
-        padding: 12, 
+        padding: 10, 
         borderRadius: 12,
         backgroundColor: '#f9f9f9',
-        fontSize: 16,
+        fontSize: 15,
         color: '#333',
     },
     textArea: {
-        flex: 1, 
         textAlignVertical: 'top',
-        minHeight: 80, // 少し高さを確保
+        minHeight: 80,
     },
     imageSection: {
-        flex: 0.8, 
-        minHeight: 150,
-        marginBottom: 16,
+        width: '100%',
+        height: 180,
+        marginBottom: 8,
     },
     imageSelectButton: {
         flex: 1,
-        width: '100%',
         backgroundColor: '#f0f5ff',
         borderRadius: 16,
         justifyContent: 'center',
@@ -280,20 +389,14 @@ const styles = StyleSheet.create({
     },
     imagePreviewContainer: {
         flex: 1,
-        width: '100%',
         borderRadius: 16,
         overflow: 'hidden',
         position: 'relative',
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
     },
     imagePreview: {
         width: '100%',
         height: '100%',
-        resizeMode: 'cover',
+        resizeMode: 'contain',  // 画像全体を表示（トリミングなし）
     },
     removeImageButton: {
         position: 'absolute',
@@ -329,11 +432,6 @@ const styles = StyleSheet.create({
         padding: 20,
         width: '90%',
         alignItems: 'center',
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-        elevation: 5,
     },
     iosDatePicker: {
         width: 320,
@@ -342,10 +440,11 @@ const styles = StyleSheet.create({
     createButton: {
         backgroundColor: '#007AFF',
         borderRadius: 30,
-        paddingVertical: 16,
+        paddingVertical: 14,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
+        marginTop: 8,
         shadowColor: "#007AFF",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
@@ -358,7 +457,29 @@ const styles = StyleSheet.create({
     },
     createButtonText: {
         color: '#fff',
-        fontSize: 18,
+        fontSize: 17,
         fontWeight: 'bold',
+    },
+    categoryPicker: {
+        flexDirection: 'row',
+    },
+    categoryOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: '#eee',
+        marginRight: 10,
+        backgroundColor: '#f9f9f9',
+    },
+    categoryOptionSelected: {
+        backgroundColor: '#fff',
+    },
+    categoryOptionText: {
+        marginLeft: 6,
+        fontSize: 14,
+        color: '#666',
     },
 });
