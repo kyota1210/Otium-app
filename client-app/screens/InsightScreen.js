@@ -38,7 +38,7 @@ const InsightScreen = ({ navigation }) => {
                 totalRecords: data.length,
                 thisMonth: thisMonthRecords.length,
                 thisWeek: thisWeekRecords.length,
-                categoriesCount: 5, // ダミー値、後でカテゴリAPIから取得
+                categoriesCount: 5, // ダミー値、後でカテゴリーAPIから取得
             });
         } catch (error) {
             console.error('Failed to load insights:', error);
@@ -118,7 +118,7 @@ const InsightScreen = ({ navigation }) => {
                             <Ionicons name="grid" size={24} color="#4CAF50" />
                         </View>
                         <Text style={styles.statValue}>{stats.categoriesCount}</Text>
-                        <Text style={styles.statLabel}>カテゴリ</Text>
+                        <Text style={styles.statLabel}>カテゴリー</Text>
                     </View>
                 </View>
 
@@ -150,11 +150,11 @@ const InsightScreen = ({ navigation }) => {
                     </View>
                 </View>
 
-                {/* カテゴリ分析 */}
+                {/* カテゴリー分析 */}
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
                         <Ionicons name="pie-chart" size={20} color="#007AFF" />
-                        <Text style={styles.sectionTitle}>カテゴリ別記録</Text>
+                        <Text style={styles.sectionTitle}>カテゴリー別記録</Text>
                     </View>
                     <View style={styles.categoryCard}>
                         <CategoryBar label="Café" count={Math.round(stats.totalRecords * 0.3)} total={stats.totalRecords} color="#FF6B6B" icon="cafe" />
@@ -170,7 +170,7 @@ const InsightScreen = ({ navigation }) => {
     );
 };
 
-// カテゴリバーコンポーネント
+// カテゴリーバーコンポーネント
 const CategoryBar = ({ label, count, total, color, icon }) => {
     const percentage = total > 0 ? (count / total) * 100 : 0;
     
@@ -198,7 +198,7 @@ const CategoryBar = ({ label, count, total, color, icon }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#fff',
     },
     topNavBar: {
         flexDirection: 'row',
@@ -224,6 +224,7 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         flex: 1,
+        backgroundColor: '#f5f5f5',
     },
     // 統計グリッド
     statsGrid: {
@@ -311,7 +312,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#333',
     },
-    // カテゴリカード
+    // カテゴリーカード
     categoryCard: {
         backgroundColor: '#fff',
         borderRadius: 16,

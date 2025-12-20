@@ -47,7 +47,7 @@ const ProfileEditScreen = ({ navigation }) => {
                     style={styles.backButton}
                     onPress={() => navigation.goBack()}
                 >
-                    <Ionicons name="arrow-back" size={24} color="#333" />
+                    <Ionicons name="arrow-back" size={24} color="#fff" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>プロフィール設定</Text>
                 <TouchableOpacity 
@@ -100,7 +100,7 @@ const ProfileEditScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#667eea',
     },
     topNavBar: {
         flexDirection: 'row',
@@ -108,9 +108,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingVertical: 12,
-        backgroundColor: '#fff',
+        backgroundColor: '#667eea',
         borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
+        borderBottomColor: 'rgba(255, 255, 255, 0.2)',
     },
     backButton: {
         padding: 4,
@@ -118,18 +118,19 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
+        color: '#fff',
     },
     saveButton: {
         padding: 4,
     },
     saveButtonText: {
         fontSize: 16,
-        color: '#007AFF',
+        color: '#fff',
         fontWeight: '600',
     },
     scrollView: {
         flex: 1,
+        backgroundColor: '#f5f5f5',
     },
     avatarSection: {
         backgroundColor: '#667eea',

@@ -63,9 +63,12 @@ const ProfileScreen = ({ navigation }) => {
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Otium設定</Text>
                     <View style={styles.menuSection}>
-                        <TouchableOpacity style={styles.menuItem}>
+                        <TouchableOpacity 
+                            style={styles.menuItem}
+                            onPress={() => navigation.navigate('CategoryManagement')}
+                        >
                             <Ionicons name="list-outline" size={24} color="#333" />
-                            <Text style={styles.menuText}>カテゴリ管理</Text>
+                            <Text style={styles.menuText}>カテゴリー管理</Text>
                             <Ionicons name="chevron-forward" size={24} color="#999" />
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.menuItem}>
@@ -144,7 +147,7 @@ const ProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#fff',
     },
     topNavBar: {
         flexDirection: 'row',
@@ -163,6 +166,7 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         flex: 1,
+        backgroundColor: '#f5f5f5',
     },
     section: {
         marginTop: 20,

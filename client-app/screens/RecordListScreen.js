@@ -15,7 +15,7 @@ export default function RecordListScreen({ navigation }) {
     const { fetchRecords } = useRecordsApi();
     const { userInfo } = useContext(AuthContext);
 
-    // カテゴリのダミーデータ（後でAPIから取得）
+    // カテゴリーのダミーデータ（後でAPIから取得）
     const categories = [
         { id: 'all', name: 'All', icon: 'apps' },
         { id: 'cafe', name: 'Café', icon: 'cafe' },
@@ -103,7 +103,7 @@ export default function RecordListScreen({ navigation }) {
                     <Text style={styles.totalArchives}>Total Archives: {records.length}</Text>
                 </View>
                 
-                {/* カテゴリスクロールエリア */}
+                {/* カテゴリースクロールエリア */}
                 <ScrollView 
                     horizontal 
                     showsHorizontalScrollIndicator={false}
@@ -144,6 +144,7 @@ export default function RecordListScreen({ navigation }) {
                 data={records}
                 keyExtractor={(item) => item.id.toString()}
                 contentContainerStyle={styles.listContent}
+                style={styles.listContainer}
                 renderItem={({ item }) => {
                     const date = new Date(item.date_logged);
                     const year = date.getFullYear(); // 西暦
@@ -199,7 +200,7 @@ export default function RecordListScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: { 
         flex: 1, 
-        backgroundColor: '#f5f5f5', // 背景色を少しグレーに
+        backgroundColor: '#fff',
     },
     topNavBar: {
         flexDirection: 'row',
@@ -294,6 +295,9 @@ const styles = StyleSheet.create({
         flex: 1, 
         justifyContent: 'center', 
         alignItems: 'center' 
+    },
+    listContainer: {
+        backgroundColor: '#f5f5f5',
     },
     listContent: {
         padding: 16,

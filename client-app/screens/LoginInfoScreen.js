@@ -139,7 +139,7 @@ const LoginInfoScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#fff',
     },
     topNavBar: {
         flexDirection: 'row',
@@ -164,6 +164,7 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         flex: 1,
+        backgroundColor: '#f5f5f5',
     },
     section: {
         marginTop: 20,

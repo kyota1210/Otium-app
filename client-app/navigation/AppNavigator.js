@@ -18,6 +18,7 @@ import RecordDetailScreen from '../screens/RecordDetailScreen';
 import ProfileEditScreen from '../screens/ProfileEditScreen';
 import LoginInfoScreen from '../screens/LoginInfoScreen';
 import PremiumPlanScreen from '../screens/PremiumPlanScreen';
+import CategoryManagementScreen from '../screens/CategoryManagementScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -152,6 +153,15 @@ const AppNavigator = () => {
           <Stack.Screen 
             name="PremiumPlan" 
             component={PremiumPlanScreen} 
+            options={{ 
+              headerShown: false,
+              presentation: 'card'
+            }} 
+          />
+          {/* ↓ 追加: Otium設定画面 */}
+          <Stack.Screen 
+            name="CategoryManagement" 
+            component={CategoryManagementScreen} 
             options={{ 
               headerShown: false,
               presentation: 'card'
