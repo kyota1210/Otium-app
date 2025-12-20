@@ -11,6 +11,11 @@ export const useRecordsApi = () => {
         formData.append('title', recordData.title);
         formData.append('description', recordData.description || '');
         formData.append('date_logged', recordData.date_logged);
+        
+        // カテゴリーIDを追加
+        if (recordData.category_id) {
+            formData.append('category_id', recordData.category_id);
+        }
 
         if (recordData.imageUri) {
             // 画像ファイルの処理
@@ -35,8 +40,10 @@ export const useRecordsApi = () => {
     }, [apiFetch]);
 
     // 自分の記録を全て取得 (Read)
-    const fetchRecords = useCallback(async () => {
-        return apiFetch('/records', {
+    // categoryIdを指定すると、そのカテゴリーでフィルタリング
+    const fetchRecords = useCallback(async (categoryId = null) => {
+        const url = categoryId ? `/records?category_id=${categoryId}` : '/records';
+        return apiFetch(url, {
             method: 'GET',
         });
     }, [apiFetch]);

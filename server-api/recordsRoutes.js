@@ -41,7 +41,7 @@ router.post('/', (req, res, next) => {
         return res.status(400).json({ message: 'リクエストデータが読み取れませんでした。' });
     }
 
-    const { title, description, date_logged } = req.body;
+    const { title, description, date_logged, category_id } = req.body;
     const user_id = req.user.id;
 
     // 要件: 日付のみ必須
@@ -69,7 +69,8 @@ router.post('/', (req, res, next) => {
             title: recordTitle,
             description: recordDescription,
             dateLogged: date_logged,
-            imageUrl
+            imageUrl,
+            categoryId: category_id || null
         });
 
         res.status(201).json({ 
@@ -86,12 +87,14 @@ router.post('/', (req, res, next) => {
 // ------------------------------------------------
 // 2. 記録の取得 (Read) - 自分の記録を全て取得
 // GET /api/records
+// クエリパラメータ: category_id (オプション)
 // ------------------------------------------------
 router.get('/', async (req, res) => {
     const user_id = req.user.id; // 自分のIDのみを使用
+    const category_id = req.query.category_id; // カテゴリーフィルター
 
     try {
-        const records = await RecordModel.findAllByUserId(user_id);
+        const records = await RecordModel.findAllByUserId(user_id, category_id || null);
         res.status(200).json(records);
     } catch (error) {
         console.error('記録取得エラー:', error);
@@ -105,11 +108,15 @@ router.get('/', async (req, res) => {
 // ------------------------------------------------
 router.put('/:id', async (req, res) => {
     const { id } = req.params;
-    const { title, description } = req.body;
+    const { title, description, category_id } = req.body;
     const user_id = req.user.id;
 
     try {
-        const success = await RecordModel.update(id, user_id, { title, description });
+        const success = await RecordModel.update(id, user_id, { 
+            title, 
+            description,
+            categoryId: category_id || null
+        });
 
         if (!success) {
             return res.status(404).json({ message: '記録が見つからないか、更新権限がありません。' });

@@ -1,27 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, TextInput, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
+import { AuthContext } from '../context/AuthContext';
+import { fetchCategories, createCategory, updateCategory, deleteCategory } from '../api/categories';
 
 const CategoryManagementScreen = ({ navigation }) => {
-    // デフォルトカテゴリー（削除不可）
+    const { userToken } = useContext(AuthContext);
+    
+    // デフォルトカテゴリー（削除不可、DBには保存しない）
     const defaultCategories = [
         { id: 'all', name: 'All', icon: 'apps', color: '#007AFF', isDefault: true },
     ];
 
     // ユーザーカスタムカテゴリー
-    const [customCategories, setCustomCategories] = useState([
-        { id: 'cafe', name: 'Café', icon: 'cafe', color: '#FF6B6B', isDefault: false },
-        { id: 'film', name: 'Film', icon: 'film', color: '#4ECDC4', isDefault: false },
-        { id: 'daily', name: 'Daily', icon: 'calendar', color: '#FFD93D', isDefault: false },
-        { id: 'travel', name: 'Travel', icon: 'airplane', color: '#95E1D3', isDefault: false },
-    ]);
+    const [customCategories, setCustomCategories] = useState([]);
+    const [loading, setLoading] = useState(false);
 
     const [showAddModal, setShowAddModal] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
     const [categoryName, setCategoryName] = useState('');
     const [selectedIcon, setSelectedIcon] = useState('bookmark');
     const [selectedColor, setSelectedColor] = useState('#007AFF');
+
+    // カテゴリーを読み込む関数
+    const loadCategories = React.useCallback(async () => {
+        setLoading(true);
+        try {
+            const categories = await fetchCategories(userToken);
+            setCustomCategories(categories);
+        } catch (error) {
+            console.error('カテゴリー取得エラー:', error);
+            Alert.alert('エラー', 'カテゴリーの取得に失敗しました');
+        } finally {
+            setLoading(false);
+        }
+    }, [userToken]);
+
+    // 画面表示時にカテゴリーを取得
+    useFocusEffect(
+        React.useCallback(() => {
+            loadCategories();
+        }, [loadCategories])
+    );
 
     // アイコン選択肢
     const availableIcons = [
@@ -38,40 +60,54 @@ const CategoryManagementScreen = ({ navigation }) => {
         '#000000'
     ];
 
-    const handleAddCategory = () => {
+    const handleAddCategory = async () => {
         if (!categoryName.trim()) {
             Alert.alert('エラー', 'カテゴリー名を入力してください');
             return;
         }
 
-        const newCategory = {
-            id: Date.now().toString(),
-            name: categoryName.trim(),
-            icon: selectedIcon,
-            color: selectedColor,
-            isDefault: false,
-        };
-
-        setCustomCategories([...customCategories, newCategory]);
-        resetForm();
-        Alert.alert('完了', 'カテゴリーを追加しました');
+        setLoading(true);
+        try {
+            await createCategory(userToken, {
+                name: categoryName.trim(),
+                icon: selectedIcon,
+                color: selectedColor,
+            });
+            
+            await loadCategories(); // カテゴリー一覧を再取得
+            resetForm();
+            Alert.alert('完了', 'カテゴリーを追加しました');
+        } catch (error) {
+            console.error('カテゴリー作成エラー:', error);
+            Alert.alert('エラー', error.message || 'カテゴリーの追加に失敗しました');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleEditCategory = () => {
+    const handleEditCategory = async () => {
         if (!categoryName.trim()) {
             Alert.alert('エラー', 'カテゴリー名を入力してください');
             return;
         }
 
-        const updatedCategories = customCategories.map(cat => 
-            cat.id === editingCategory.id 
-                ? { ...cat, name: categoryName.trim(), icon: selectedIcon, color: selectedColor }
-                : cat
-        );
-
-        setCustomCategories(updatedCategories);
-        resetForm();
-        Alert.alert('完了', 'カテゴリーを更新しました');
+        setLoading(true);
+        try {
+            await updateCategory(userToken, editingCategory.id, {
+                name: categoryName.trim(),
+                icon: selectedIcon,
+                color: selectedColor,
+            });
+            
+            await loadCategories(); // カテゴリー一覧を再取得
+            resetForm();
+            Alert.alert('完了', 'カテゴリーを更新しました');
+        } catch (error) {
+            console.error('カテゴリー更新エラー:', error);
+            Alert.alert('エラー', error.message || 'カテゴリーの更新に失敗しました');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleDeleteCategory = (category) => {
@@ -83,9 +119,18 @@ const CategoryManagementScreen = ({ navigation }) => {
                 {
                     text: '削除',
                     style: 'destructive',
-                    onPress: () => {
-                        setCustomCategories(customCategories.filter(cat => cat.id !== category.id));
-                        Alert.alert('完了', 'カテゴリーを削除しました');
+                    onPress: async () => {
+                        setLoading(true);
+                        try {
+                            await deleteCategory(userToken, category.id);
+                            await loadCategories(); // カテゴリー一覧を再取得
+                            Alert.alert('完了', 'カテゴリーを削除しました');
+                        } catch (error) {
+                            console.error('カテゴリー削除エラー:', error);
+                            Alert.alert('エラー', error.message || 'カテゴリーの削除に失敗しました');
+                        } finally {
+                            setLoading(false);
+                        }
                     }
                 }
             ]

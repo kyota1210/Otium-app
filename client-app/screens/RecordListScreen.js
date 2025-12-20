@@ -3,6 +3,7 @@ import React, { useState, useCallback, useContext } from 'react';
 import { StyleSheet, Text, View, FlatList, Alert, ActivityIndicator, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRecordsApi } from '../api/records';
+import { fetchCategories } from '../api/categories';
 import { useFocusEffect } from '@react-navigation/native';
 import { getImageUrl } from '../utils/imageHelper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,37 +14,59 @@ export default function RecordListScreen({ navigation }) {
     const [records, setRecords] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedCategory, setSelectedCategory] = useState('all');
+    const [categories, setCategories] = useState([]);
     const { fetchRecords } = useRecordsApi();
-    const { userInfo } = useContext(AuthContext);
+    const { userInfo, userToken } = useContext(AuthContext);
 
-    // カテゴリーのダミーデータ（後でAPIから取得）
-    const categories = [
-        { id: 'all', name: 'All', icon: 'apps' },
-        { id: 'cafe', name: 'Café', icon: 'cafe' },
-        { id: 'film', name: 'Film', icon: 'film' },
-        { id: 'daily', name: 'Daily', icon: 'calendar' },
-        { id: 'travel', name: 'Travel', icon: 'airplane' },
-    ];
+    // カテゴリーを取得する関数
+    const loadCategories = useCallback(async () => {
+        try {
+            const fetchedCategories = await fetchCategories(userToken);
+            // カスタムカテゴリーが1件以上ある場合のみAllカテゴリーを追加
+            if (fetchedCategories.length > 0) {
+                const allCategory = { id: 'all', name: 'All', icon: 'apps', color: '#007AFF' };
+                const newCategories = [allCategory, ...fetchedCategories];
+                setCategories(newCategories);
+            } else {
+                // カスタムカテゴリーがない場合は空配列
+                setCategories([]);
+            }
+        } catch (error) {
+            console.error('カテゴリー取得エラー:', error);
+            // エラー時も空配列
+            setCategories([]);
+        }
+    }, [userToken]);
 
     // 記録を取得する関数
     const loadRecords = useCallback(async () => {
         setLoading(true);
         try {
-            const data = await fetchRecords();
+            // selectedCategoryが'all'の場合はnullを渡して全記録を取得
+            const categoryId = selectedCategory === 'all' ? null : selectedCategory;
+            const data = await fetchRecords(categoryId);
             setRecords(data);
         } catch (error) {
             Alert.alert('エラー', '記録の取得に失敗しました: ' + error.message);
         } finally {
             setLoading(false);
         }
-    }, [fetchRecords]);
+    }, [fetchRecords, selectedCategory]);
 
     // 画面が表示されるたびにデータを再取得
     useFocusEffect(
         useCallback(() => {
+            loadCategories();
             loadRecords();
-        }, [loadRecords])
+        }, [loadCategories, loadRecords])
     );
+    
+    // カテゴリー変更時に記録を再取得
+    React.useEffect(() => {
+        if (categories.length > 0) {
+            loadRecords();
+        }
+    }, [selectedCategory]);
     
     // 記録削除の処理
     const handleDelete = async (id) => {
@@ -111,41 +134,50 @@ export default function RecordListScreen({ navigation }) {
                     <Text style={styles.totalArchives}>Total Archives: {records.length}</Text>
                 </View>
                 
-                {/* カテゴリースクロールエリア */}
-                <ScrollView 
-                    horizontal 
-                    showsHorizontalScrollIndicator={false}
-                    style={styles.categoryScrollContainer}
-                    contentContainerStyle={styles.categoryScrollContent}
-                >
-                    {categories.map((category) => (
-                        <TouchableOpacity
-                            key={category.id}
-                            style={[
-                                styles.categoryItem,
-                                selectedCategory === category.id && styles.categoryItemSelected
-                            ]}
-                            onPress={() => setSelectedCategory(category.id)}
-                        >
-                            <View style={[
-                                styles.categoryIconCircle,
-                                selectedCategory === category.id && styles.categoryIconCircleSelected
-                            ]}>
-                                <Ionicons 
-                                    name={category.icon} 
-                                    size={20} 
-                                    color={selectedCategory === category.id ? '#007AFF' : '#666'} 
-                                />
-                            </View>
-                            <Text style={[
-                                styles.categoryName,
-                                selectedCategory === category.id && styles.categoryNameSelected
-                            ]}>
-                                {category.name}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView>
+                {/* カテゴリースクロールエリア - カテゴリーがある場合のみ表示 */}
+                {categories.length > 0 && (
+                    <ScrollView 
+                        horizontal 
+                        showsHorizontalScrollIndicator={false}
+                        style={styles.categoryScrollContainer}
+                        contentContainerStyle={[
+                            styles.categoryScrollContent,
+                            categories.length === 2 && styles.categoryScrollContentRightAlign
+                        ]}
+                    >
+                        {categories.map((category) => (
+                            <TouchableOpacity
+                                key={category.id}
+                                style={[
+                                    styles.categoryItem,
+                                    selectedCategory === category.id && styles.categoryItemSelected
+                                ]}
+                                onPress={() => setSelectedCategory(category.id)}
+                            >
+                                <View style={[
+                                    styles.categoryIconCircle,
+                                    selectedCategory === category.id && styles.categoryIconCircleSelected,
+                                    { 
+                                        backgroundColor: category.color ? `${category.color}20` : '#f0f0f0',
+                                        borderColor: selectedCategory === category.id ? (category.color || '#007AFF') : 'transparent'
+                                    }
+                                ]}>
+                                    <Ionicons 
+                                        name={category.icon} 
+                                        size={20} 
+                                        color={category.color || '#666'} 
+                                    />
+                                </View>
+                                <Text style={[
+                                    styles.categoryName,
+                                    selectedCategory === category.id && styles.categoryNameSelected
+                                ]}>
+                                    {category.name}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </ScrollView>
+                )}
             </View>
 
             <FlatList
@@ -282,6 +314,10 @@ const styles = StyleSheet.create({
     categoryScrollContent: {
         alignItems: 'center',
         paddingRight: 6,
+        flexGrow: 1,
+    },
+    categoryScrollContentRightAlign: {
+        justifyContent: 'flex-end',
     },
     categoryItem: {
         alignItems: 'center',
@@ -294,12 +330,11 @@ const styles = StyleSheet.create({
         backgroundColor: '#f0f0f0',
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 2,
+        borderWidth: 3,
         borderColor: 'transparent',
     },
     categoryIconCircleSelected: {
-        borderColor: '#007AFF',
-        backgroundColor: '#E8F4FF',
+        // 拡大なし - はみ出しを防ぐため
     },
     categoryName: {
         fontSize: 10,
@@ -308,8 +343,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     categoryNameSelected: {
-        color: '#007AFF',
-        fontWeight: '600',
+        fontWeight: '700',
     },
     center: { 
         flex: 1, 
