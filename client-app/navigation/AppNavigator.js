@@ -15,6 +15,9 @@ import ThreadScreen from '../screens/ThreadScreen';
 import InsightScreen from '../screens/InsightScreen';
 // ↓ 追加
 import RecordDetailScreen from '../screens/RecordDetailScreen';
+import ProfileEditScreen from '../screens/ProfileEditScreen';
+import LoginInfoScreen from '../screens/LoginInfoScreen';
+import PremiumPlanScreen from '../screens/PremiumPlanScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -124,6 +127,31 @@ const AppNavigator = () => {
           <Stack.Screen 
             name="Insight" 
             component={InsightScreen} 
+            options={{ 
+              headerShown: false,
+              presentation: 'card'
+            }} 
+          />
+          {/* ↓ 追加: アカウント設定画面 */}
+          <Stack.Screen 
+            name="ProfileEdit" 
+            component={ProfileEditScreen} 
+            options={{ 
+              headerShown: false,
+              presentation: 'card'
+            }} 
+          />
+          <Stack.Screen 
+            name="LoginInfo" 
+            component={LoginInfoScreen} 
+            options={{ 
+              headerShown: false,
+              presentation: 'card'
+            }} 
+          />
+          <Stack.Screen 
+            name="PremiumPlan" 
+            component={PremiumPlanScreen} 
             options={{ 
               headerShown: false,
               presentation: 'card'

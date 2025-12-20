@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const ProfileScreen = () => {
+const ProfileScreen = ({ navigation }) => {
     const { userInfo, authContext } = useContext(AuthContext);
 
     const handleLogout = () => {
@@ -36,24 +36,43 @@ const ProfileScreen = () => {
             </View>
 
             <ScrollView style={styles.scrollView}>
-                {/* アカウント情報セクション */}
+                {/* アカウント設定セクション */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>アカウント</Text>
+                    <Text style={styles.sectionTitle}>アカウント設定</Text>
                     <View style={styles.menuSection}>
-                        <View style={styles.menuItem}>
-                            <Ionicons name="person-outline" size={24} color="#333" />
-                            <View style={styles.menuTextContainer}>
-                                <Text style={styles.menuText}>ユーザー名</Text>
-                                <Text style={styles.menuSubText}>{userInfo?.user_name || 'ユーザー'}</Text>
-                            </View>
-                        </View>
-                        <View style={styles.menuItem}>
-                            <Ionicons name="mail-outline" size={24} color="#333" />
-                            <View style={styles.menuTextContainer}>
-                                <Text style={styles.menuText}>メールアドレス</Text>
-                                <Text style={styles.menuSubText}>{userInfo?.email || ''}</Text>
-                            </View>
-                        </View>
+                        <TouchableOpacity 
+                            style={styles.menuItem}
+                            onPress={() => navigation.navigate('LoginInfo')}
+                        >
+                            <Ionicons name="key-outline" size={24} color="#333" />
+                            <Text style={styles.menuText}>ログイン情報の変更</Text>
+                            <Ionicons name="chevron-forward" size={24} color="#999" />
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            style={styles.menuItem}
+                            onPress={() => navigation.navigate('PremiumPlan')}
+                        >
+                            <Ionicons name="diamond-outline" size={24} color="#333" />
+                            <Text style={styles.menuText}>プレミアムプランの設定</Text>
+                            <Ionicons name="chevron-forward" size={24} color="#999" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* Otium設定セクション */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Otium設定</Text>
+                    <View style={styles.menuSection}>
+                        <TouchableOpacity style={styles.menuItem}>
+                            <Ionicons name="list-outline" size={24} color="#333" />
+                            <Text style={styles.menuText}>カテゴリ管理</Text>
+                            <Ionicons name="chevron-forward" size={24} color="#999" />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.menuItem}>
+                            <Ionicons name="options-outline" size={24} color="#333" />
+                            <Text style={styles.menuText}>表示設定</Text>
+                            <Ionicons name="chevron-forward" size={24} color="#999" />
+                        </TouchableOpacity>
                     </View>
                 </View>
 

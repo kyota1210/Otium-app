@@ -91,9 +91,13 @@ export default function RecordListScreen({ navigation }) {
 
             {/* ユーザー情報ヘッダー */}
             <View style={styles.userHeader}>
-                <View style={styles.userIconContainer}>
+                <TouchableOpacity 
+                    style={styles.userIconContainer}
+                    onPress={() => navigation.navigate('ProfileEdit')}
+                    activeOpacity={0.7}
+                >
                     <Ionicons name="person-circle-outline" size={85} color="#333" />
-                </View>
+                </TouchableOpacity>
                 <View style={styles.userInfoText}>
                     <Text style={styles.userNameText}>{userInfo?.user_name || 'ゲスト'}</Text>
                     <Text style={styles.totalArchives}>Total Archives: {records.length}</Text>
