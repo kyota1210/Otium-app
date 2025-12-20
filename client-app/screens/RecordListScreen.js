@@ -1,6 +1,5 @@
-// AppStackのメイン画面
-import React, { useState, useCallback, useContext } from 'react';
-import { StyleSheet, Text, View, FlatList, Alert, ActivityIndicator, TouchableOpacity, Image, ScrollView } from 'react-native';
+import React, { useState, useCallback, useContext, useRef } from 'react';
+import { StyleSheet, Text, View, Alert, ActivityIndicator, TouchableOpacity, Image, ScrollView, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRecordsApi } from '../api/records';
 import { fetchCategories } from '../api/categories';
@@ -10,30 +9,66 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../context/AuthContext';
 import { SERVER_URL } from '../config';
 
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const COLUMN_WIDTH = SCREEN_WIDTH / 3; // 3列
+
+// 日付を "2024 October" 形式にフォーマットするヘルパー
+const formatFloatingDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = date.toLocaleString('en-US', { month: 'long' });
+    return `${year} ${month}`;
+};
+
+// ギャラリーアイテムコンポーネント
+const GalleryItem = ({ item, navigation, itemWidth, aspectRatio }) => {
+    const imageUrl = getImageUrl(item.image_url);
+
+    return (
+        <TouchableOpacity 
+            style={[styles.galleryCard, { width: itemWidth }]} 
+            onPress={() => navigation.navigate('RecordDetail', { record: item })}
+            activeOpacity={0.9}
+        >
+            <View style={[styles.imageContainer, { aspectRatio }]}>
+                {imageUrl ? (
+                    <Image source={{ uri: imageUrl }} style={styles.galleryImage} />
+                ) : (
+                    <View style={styles.placeholderGalleryImage}>
+                        <Ionicons name="image" size={20} color="#fff" />
+                    </View>
+                )}
+            </View>
+        </TouchableOpacity>
+    );
+};
+
 export default function RecordListScreen({ navigation }) {
     const [records, setRecords] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [categories, setCategories] = useState([]);
+    const [currentDateLabel, setCurrentDateLabel] = useState('');
+    const [showDateLabel, setShowDateLabel] = useState(false);
+    
     const { fetchRecords } = useRecordsApi();
     const { userInfo, userToken } = useContext(AuthContext);
+    const scrollTimeout = useRef(null);
 
     // カテゴリーを取得する関数
     const loadCategories = useCallback(async () => {
         try {
             const fetchedCategories = await fetchCategories(userToken);
-            // カスタムカテゴリーが1件以上ある場合のみAllカテゴリーを追加
             if (fetchedCategories.length > 0) {
                 const allCategory = { id: 'all', name: 'All', icon: 'apps', color: '#007AFF' };
                 const newCategories = [allCategory, ...fetchedCategories];
                 setCategories(newCategories);
             } else {
-                // カスタムカテゴリーがない場合は空配列
                 setCategories([]);
             }
         } catch (error) {
             console.error('カテゴリー取得エラー:', error);
-            // エラー時も空配列
             setCategories([]);
         }
     }, [userToken]);
@@ -42,16 +77,88 @@ export default function RecordListScreen({ navigation }) {
     const loadRecords = useCallback(async () => {
         setLoading(true);
         try {
-            // selectedCategoryが'all'の場合はnullを渡して全記録を取得
             const categoryId = selectedCategory === 'all' ? null : selectedCategory;
             const data = await fetchRecords(categoryId);
             setRecords(data);
+            if (data.length > 0) {
+                setCurrentDateLabel(formatFloatingDate(data[0].date_logged));
+            }
         } catch (error) {
             Alert.alert('エラー', '記録の取得に失敗しました: ' + error.message);
         } finally {
             setLoading(false);
         }
     }, [fetchRecords, selectedCategory]);
+
+    const renderPackedGrid = () => {
+        const rows = [];
+        let i = 0;
+        const patterns = [
+            [100],               // 1枚 (100%)
+            [50, 50],            // 2枚 (50%ずつ)
+            [66.6, 33.3],        // 2枚 (大・小)
+            [33.3, 66.6],        // 2枚 (小・大)
+            [33.3, 33.3, 33.3],  // 3枚 (33%ずつ)
+        ];
+
+        while (i < records.length) {
+            // IDをシードにしてパターンを決定
+            const patternIndex = (records[i].id) % patterns.length;
+            const pattern = patterns[patternIndex];
+            const rowItems = records.slice(i, i + pattern.length);
+            
+            if (rowItems.length > 0) {
+                // その行のベースとなるアスペクト比を決定
+                const rowAspectRatio = 1 + ((records[i].id % 5) / 10); // 1.0 〜 1.4 の間で変動
+
+                rows.push(
+                    <View key={`row-${i}`} style={styles.rowContainer}>
+                        {rowItems.map((item, index) => {
+                            const widthPercent = pattern[index] || (100 / rowItems.length);
+                            // 行内で高さを揃えるため、アスペクト比を幅に合わせて調整
+                            const itemAspectRatio = rowAspectRatio * (widthPercent / 100) * rowItems.length;
+                            
+                            return (
+                                <GalleryItem 
+                                    key={item.id} 
+                                    item={item} 
+                                    navigation={navigation} 
+                                    itemWidth={`${widthPercent}%`}
+                                    aspectRatio={itemAspectRatio}
+                                />
+                            );
+                        })}
+                    </View>
+                );
+            }
+            i += pattern.length;
+        }
+        return rows;
+    };
+
+    // スクロール時の処理
+    const handleScroll = (event) => {
+        const offsetY = event.nativeEvent.contentOffset.y;
+        
+        // 日付ラベルを表示
+        setShowDateLabel(true);
+        
+        // スクロール停止を検知してラベルを隠す
+        if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+        scrollTimeout.current = setTimeout(() => {
+            setShowDateLabel(false);
+        }, 1500);
+
+        // 現在表示されているアイテムから日付を推定（簡易版）
+        const itemIndex = Math.floor(offsetY / 200); // 概算のアイテム高さ
+        const targetItem = records[itemIndex * 2]; // 2列なので
+        if (targetItem) {
+            const label = formatFloatingDate(targetItem.date_logged);
+            if (label !== currentDateLabel) {
+                setCurrentDateLabel(label);
+            }
+        }
+    };
 
     // 画面が表示されるたびにデータを再取得
     useFocusEffect(
@@ -67,33 +174,15 @@ export default function RecordListScreen({ navigation }) {
             loadRecords();
         }
     }, [selectedCategory]);
-    
-    // 記録削除の処理
-    const handleDelete = async (id) => {
-        Alert.alert(
-            "削除確認",
-            "この記録を本当に削除しますか？",
-            [
-                { text: "キャンセル" },
-                { 
-                    text: "削除", 
-                    onPress: async () => {
-                        try {
-                            await deleteRecord(id);
-                            loadRecords(); 
-                        } catch (error) {
-                            Alert.alert('削除失敗', error.message);
-                        }
-                    },
-                    style: 'destructive'
-                }
-            ]
-        );
-    };
 
     if (loading) {
         return <View style={styles.center}><ActivityIndicator size="large" color="#007AFF" /></View>;
     }
+
+    // データを3カラムに分割
+    const leftColumnData = records.filter((_, i) => i % 3 === 0);
+    const midColumnData = records.filter((_, i) => i % 3 === 1);
+    const rightColumnData = records.filter((_, i) => i % 3 === 2);
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
@@ -134,7 +223,6 @@ export default function RecordListScreen({ navigation }) {
                     <Text style={styles.totalArchives}>Total Archives: {records.length}</Text>
                 </View>
                 
-                {/* カテゴリースクロールエリア - カテゴリーがある場合のみ表示 */}
                 {categories.length > 0 && (
                     <ScrollView 
                         horizontal 
@@ -180,59 +268,32 @@ export default function RecordListScreen({ navigation }) {
                 )}
             </View>
 
-            <FlatList
-                data={records}
-                keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={styles.listContent}
-                style={styles.listContainer}
-                renderItem={({ item }) => {
-                    const date = new Date(item.date_logged);
-                    const year = date.getFullYear(); // 西暦
-                    const monthDay = `${date.getMonth() + 1}/${date.getDate()}`; // 月日
-                    
-                    const imageUrl = getImageUrl(item.image_url);
+            <View style={styles.mainContent}>
+                <ScrollView 
+                    onScroll={handleScroll}
+                    scrollEventThrottle={16}
+                    contentContainerStyle={styles.scrollContent}
+                >
+                    {records.length > 0 ? (
+                        <View style={styles.gridContainer}>
+                            {renderPackedGrid()}
+                        </View>
+                    ) : (
+                        <View style={styles.emptyContainer}>
+                            <Ionicons name="document-text-outline" size={64} color="#ccc" />
+                            <Text style={styles.emptyText}>まだ記録がありません。</Text>
+                            <Text style={styles.emptySubText}>下の「作成」タブから新しい記録を追加しましょう。</Text>
+                        </View>
+                    )}
+                </ScrollView>
 
-                    return (
-                        <TouchableOpacity 
-                            style={styles.card} 
-                            onPress={() => navigation.navigate('RecordDetail', { record: item })}
-                        >
-                            {/* 左半分: 画像 */}
-                            <View style={styles.leftContainer}>
-                                {imageUrl ? (
-                                    <Image source={{ uri: imageUrl }} style={styles.image} />
-                                ) : (
-                                    <View style={styles.placeholderImage}>
-                                        <Ionicons name="image" size={32} color="#fff" />
-                                    </View>
-                                )}
-                            </View>
-
-                            {/* 右半分: 情報 */}
-                            <View style={styles.rightContainer}>
-                                <View style={styles.dateHeader}>
-                                    <Text style={styles.monthDay}>{monthDay}</Text>
-                                </View>
-                                
-                                <View style={styles.textContainer}>
-                                    <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
-                                </View>
-
-                                <View style={styles.yearContainer}>
-                                    <Text style={styles.year}>{year}</Text>
-                                </View>
-                            </View>
-                        </TouchableOpacity>
-                    );
-                }}
-                ListEmptyComponent={() => (
-                    <View style={styles.emptyContainer}>
-                        <Ionicons name="document-text-outline" size={64} color="#ccc" />
-                        <Text style={styles.emptyText}>まだ記録がありません。</Text>
-                        <Text style={styles.emptySubText}>下の「作成」タブから新しい記録を追加しましょう。</Text>
+                {/* フローティング日付インジケーター */}
+                {showDateLabel && currentDateLabel !== '' && (
+                    <View style={styles.floatingDateContainer}>
+                        <Text style={styles.floatingDateText}>{currentDateLabel}</Text>
                     </View>
                 )}
-            />
+            </View>
         </SafeAreaView>
     );
 }
@@ -270,50 +331,47 @@ const styles = StyleSheet.create({
     userHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 6,
+        paddingHorizontal: 16,
         paddingTop: 4,
         paddingBottom: 6,
         backgroundColor: '#fff',
         borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
+        borderBottomColor: '#f0f0f0',
     },
     userIconContainer: {
-        marginLeft: 6,
-        marginRight: 8,
-        width: 70,
-        height: 70,
-        borderRadius: 35,
+        marginRight: 12,
+        width: 60,
+        height: 60,
+        borderRadius: 30,
         overflow: 'hidden',
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: '#f8f8f8',
     },
     userAvatar: {
-        width: 70,
-        height: 70,
-        borderRadius: 35,
+        width: 60,
+        height: 60,
+        borderRadius: 30,
     },
     userInfoText: {
         flex: 0,
         marginRight: 8,
     },
     userNameText: {
-        fontSize: 14,
-        fontWeight: '700',
+        fontSize: 16,
+        fontWeight: 'bold',
         color: '#333',
-        marginBottom: 2,
     },
     totalArchives: {
-        fontSize: 11,
-        color: '#888',
-        marginTop: 1,
+        fontSize: 12,
+        color: '#999',
     },
     categoryScrollContainer: {
         flex: 1,
-        maxHeight: 90,
+        maxHeight: 80,
     },
     categoryScrollContent: {
         alignItems: 'center',
-        paddingRight: 6,
         flexGrow: 1,
     },
     categoryScrollContentRightAlign: {
@@ -321,117 +379,117 @@ const styles = StyleSheet.create({
     },
     categoryItem: {
         alignItems: 'center',
-        marginHorizontal: 6,
+        marginHorizontal: 8,
     },
     categoryIconCircle: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        backgroundColor: '#f0f0f0',
+        width: 48,
+        height: 48,
+        borderRadius: 24,
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 3,
-        borderColor: 'transparent',
+        borderWidth: 2,
     },
     categoryIconCircleSelected: {
-        // 拡大なし - はみ出しを防ぐため
+        // 選択時のスタイル
     },
     categoryName: {
         fontSize: 10,
         color: '#666',
         marginTop: 4,
-        textAlign: 'center',
     },
     categoryNameSelected: {
-        fontWeight: '700',
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    mainContent: {
+        flex: 1,
+        position: 'relative',
+    },
+    scrollContent: {
+        padding: 0,
+    },
+    gridContainer: {
+        width: '100%',
+    },
+    rowContainer: {
+        flexDirection: 'row',
+        width: '100%',
+    },
+    galleryCard: {
+        backgroundColor: '#fff',
+        overflow: 'hidden',
+        borderWidth: 0.5,
+        borderColor: '#fff',
+    },
+    imageContainer: {
+        width: '100%',
+        backgroundColor: '#fdfdfd',
+        // 余白なし
+        padding: 0,
+    },
+    galleryImage: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+        borderRadius: 0, // 角丸なし
+    },
+    placeholderGalleryImage: {
+        width: '100%',
+        height: 150,
+        backgroundColor: '#f5f5f5',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    galleryInfo: {
+        paddingTop: 8,
+        paddingHorizontal: 4,
+    },
+    galleryTitle: {
+        fontSize: 12,
+        fontWeight: '500',
+        color: '#444',
+        letterSpacing: 0.5,
+    },
+    galleryDate: {
+        fontSize: 9,
+        color: '#aaa',
+        marginTop: 2,
+        fontFamily: 'serif', // 高級感を出すためにセリフ体（利用可能な場合）
+    },
+    floatingDateContainer: {
+        position: 'absolute',
+        bottom: 40, // 下部に配置
+        left: 0,
+        right: 0,
+        alignItems: 'center',
+        zIndex: 1000,
+    },
+    floatingDateText: {
+        fontSize: 14,
+        fontWeight: '300',
+        color: 'rgba(0, 0, 0, 0.3)', // かなりうっすら
+        letterSpacing: 4,
+        textTransform: 'uppercase',
+    },
+    emptyContainer: {
+        alignItems: 'center',
+        marginTop: 100,
+    },
+    emptyText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#ccc',
+        marginTop: 16,
+    },
+    emptySubText: {
+        fontSize: 14,
+        color: '#ddd',
+        marginTop: 8,
+        textAlign: 'center',
     },
     center: { 
         flex: 1, 
         justifyContent: 'center', 
         alignItems: 'center' 
     },
-    listContainer: {
-        backgroundColor: '#f5f5f5',
-    },
-    listContent: {
-        padding: 16,
-    },
-    card: {
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        marginBottom: 12,
-        flexDirection: 'row', // 横並びにする
-        height: 120, // 固定高さ（必要に応じて調整）
-        overflow: 'hidden',
-        // シャドウ
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3.84,
-        elevation: 3,
-    },
-    // 左側（画像エリア）
-    leftContainer: {
-        flex: 1, // 1:1 の比率
-        backgroundColor: '#ddd',
-    },
-    image: {
-        width: '100%',
-        height: '100%',
-        resizeMode: 'cover',
-    },
-    placeholderImage: {
-        flex: 1,
-        backgroundColor: '#ccc',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    // 右側（テキストエリア）
-    rightContainer: {
-        flex: 1, // 1:1 の比率
-        padding: 10,
-        position: 'relative', // 年を右下に配置するために必要
-    },
-    dateHeader: {
-        alignItems: 'flex-end', // 右寄せ
-        marginBottom: 4,
-    },
-    monthDay: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: '#555',
-    },
-    textContainer: {
-        flex: 1,
-    },
-    title: {
-        fontSize: 16,
-        color: '#333',
-        fontWeight: '500',
-    },
-    yearContainer: {
-        position: 'absolute',
-        right: 10,
-        bottom: 10,
-    },
-    year: {
-        fontSize: 12,
-        color: '#999',
-    },
-    // Empty State styles...
-    emptyContainer: {
-        alignItems: 'center',
-        marginTop: 60,
-    },
-    emptyText: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#888',
-        marginTop: 16,
-    },
-    emptySubText: {
-        fontSize: 14,
-        color: '#aaa',
-        marginTop: 8,
-    }
 });
