@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { updateProfile } from '../api/user';
@@ -9,6 +10,7 @@ import { SERVER_URL } from '../config';
 
 const ProfileEditScreen = ({ navigation }) => {
     const { userInfo, userToken, authContext } = useContext(AuthContext);
+    const { theme } = useTheme();
     const [userName, setUserName] = useState(userInfo?.user_name || '');
     const [avatarUri, setAvatarUri] = useState(
         userInfo?.avatar_url ? `${SERVER_URL}/${userInfo.avatar_url}` : null
@@ -74,30 +76,33 @@ const ProfileEditScreen = ({ navigation }) => {
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
             {/* トップナビゲーションバー */}
-            <View style={styles.topNavBar}>
+            <View style={[styles.topNavBar, {
+                backgroundColor: theme.colors.background,
+                borderBottomColor: theme.colors.border
+            }]}>
                 <TouchableOpacity 
                     style={styles.backButton}
                     onPress={() => navigation.goBack()}
                 >
-                    <Ionicons name="arrow-back" size={24} color="#333" />
+                    <Ionicons name="arrow-back" size={24} color={theme.colors.icon} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>プロフィール設定</Text>
+                <Text style={[styles.headerTitle, { color: theme.colors.text }]}>プロフィール設定</Text>
                 <TouchableOpacity 
                     style={styles.saveButton}
                     onPress={handleSave}
                     disabled={isLoading}
                 >
                     {isLoading ? (
-                        <ActivityIndicator size="small" color="#007AFF" />
+                        <ActivityIndicator size="small" color={theme.colors.primary} />
                     ) : (
-                        <Text style={styles.saveButtonText}>保存</Text>
+                        <Text style={[styles.saveButtonText, { color: theme.colors.primary }]}>保存</Text>
                     )}
                 </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.scrollView}>
+            <ScrollView style={[styles.scrollView, { backgroundColor: theme.colors.secondaryBackground }]}>
                 {/* アバター */}
                 <View style={styles.avatarSection}>
                     <TouchableOpacity 
@@ -119,15 +124,19 @@ const ProfileEditScreen = ({ navigation }) => {
                 </View>
 
                 {/* フォーム */}
-                <View style={styles.formSection}>
+                <View style={[styles.formSection, { backgroundColor: theme.colors.card }]}>
                     <View style={styles.inputGroup}>
-                        <Text style={styles.label}>ユーザー名</Text>
+                        <Text style={[styles.label, { color: theme.colors.text }]}>ユーザー名</Text>
                         <TextInput
-                            style={styles.input}
+                            style={[styles.input, {
+                                backgroundColor: theme.colors.secondaryBackground,
+                                borderColor: theme.colors.border,
+                                color: theme.colors.text
+                            }]}
                             value={userName}
                             onChangeText={setUserName}
                             placeholder="ユーザー名を入力"
-                            placeholderTextColor="#999"
+                            placeholderTextColor={theme.colors.inactive}
                         />
                     </View>
                 </View>
@@ -139,7 +148,6 @@ const ProfileEditScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
     },
     topNavBar: {
         flexDirection: 'row',
@@ -147,9 +155,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingVertical: 12,
-        backgroundColor: '#fff',
         borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
     },
     backButton: {
         padding: 4,
@@ -157,19 +163,16 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
     },
     saveButton: {
         padding: 4,
     },
     saveButtonText: {
         fontSize: 16,
-        color: '#007AFF',
         fontWeight: '600',
     },
     scrollView: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
     },
     avatarSection: {
         backgroundColor: '#667eea',
@@ -225,7 +228,6 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
     formSection: {
-        backgroundColor: '#fff',
         marginTop: 0,
         paddingHorizontal: 20,
         paddingVertical: 16,
@@ -236,18 +238,14 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#333',
         marginBottom: 8,
     },
     input: {
-        backgroundColor: '#f5f5f5',
         borderRadius: 8,
         paddingHorizontal: 16,
         paddingVertical: 12,
         fontSize: 16,
-        color: '#333',
         borderWidth: 1,
-        borderColor: '#e0e0e0',
     },
 });
 

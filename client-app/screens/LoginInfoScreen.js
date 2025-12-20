@@ -2,10 +2,12 @@ import React, { useContext, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const LoginInfoScreen = ({ navigation }) => {
     const { userInfo } = useContext(AuthContext);
+    const { theme } = useTheme();
     const [email, setEmail] = useState(userInfo?.email || '');
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -43,42 +45,51 @@ const LoginInfoScreen = ({ navigation }) => {
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
             {/* トップナビゲーションバー */}
-            <View style={styles.topNavBar}>
+            <View style={[styles.topNavBar, {
+                backgroundColor: theme.colors.background,
+                borderBottomColor: theme.colors.border
+            }]}>
                 <TouchableOpacity 
                     style={styles.backButton}
                     onPress={() => navigation.goBack()}
                 >
-                    <Ionicons name="arrow-back" size={24} color="#333" />
+                    <Ionicons name="arrow-back" size={24} color={theme.colors.icon} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>ログイン情報の変更</Text>
+                <Text style={[styles.headerTitle, { color: theme.colors.text }]}>ログイン情報の変更</Text>
                 <View style={styles.placeholder} />
             </View>
 
-            <ScrollView style={styles.scrollView}>
+            <ScrollView style={[styles.scrollView, { backgroundColor: theme.colors.secondaryBackground }]}>
                 {/* メールアドレス変更 */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>メールアドレス</Text>
-                    <View style={styles.card}>
+                    <Text style={[styles.sectionTitle, { color: theme.colors.secondaryText }]}>メールアドレス</Text>
+                    <View style={[styles.card, { backgroundColor: theme.colors.card }]}>
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>現在のメールアドレス</Text>
-                            <Text style={styles.currentValue}>{userInfo?.email || ''}</Text>
+                            <Text style={[styles.label, { color: theme.colors.text }]}>現在のメールアドレス</Text>
+                            <Text style={[styles.currentValue, { color: theme.colors.secondaryText }]}>
+                                {userInfo?.email || ''}
+                            </Text>
                         </View>
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>新しいメールアドレス</Text>
+                            <Text style={[styles.label, { color: theme.colors.text }]}>新しいメールアドレス</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, {
+                                    backgroundColor: theme.colors.secondaryBackground,
+                                    borderColor: theme.colors.border,
+                                    color: theme.colors.text
+                                }]}
                                 value={email}
                                 onChangeText={setEmail}
                                 placeholder="新しいメールアドレスを入力"
-                                placeholderTextColor="#999"
+                                placeholderTextColor={theme.colors.inactive}
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                             />
                         </View>
                         <TouchableOpacity 
-                            style={styles.button}
+                            style={[styles.button, { backgroundColor: theme.colors.primary }]}
                             onPress={handleUpdateEmail}
                         >
                             <Text style={styles.buttonText}>メールアドレスを変更</Text>
@@ -88,43 +99,55 @@ const LoginInfoScreen = ({ navigation }) => {
 
                 {/* パスワード変更 */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>パスワード</Text>
-                    <View style={styles.card}>
+                    <Text style={[styles.sectionTitle, { color: theme.colors.secondaryText }]}>パスワード</Text>
+                    <View style={[styles.card, { backgroundColor: theme.colors.card }]}>
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>現在のパスワード</Text>
+                            <Text style={[styles.label, { color: theme.colors.text }]}>現在のパスワード</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, {
+                                    backgroundColor: theme.colors.secondaryBackground,
+                                    borderColor: theme.colors.border,
+                                    color: theme.colors.text
+                                }]}
                                 value={currentPassword}
                                 onChangeText={setCurrentPassword}
                                 placeholder="現在のパスワードを入力"
-                                placeholderTextColor="#999"
+                                placeholderTextColor={theme.colors.inactive}
                                 secureTextEntry
                             />
                         </View>
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>新しいパスワード</Text>
+                            <Text style={[styles.label, { color: theme.colors.text }]}>新しいパスワード</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, {
+                                    backgroundColor: theme.colors.secondaryBackground,
+                                    borderColor: theme.colors.border,
+                                    color: theme.colors.text
+                                }]}
                                 value={newPassword}
                                 onChangeText={setNewPassword}
                                 placeholder="新しいパスワードを入力"
-                                placeholderTextColor="#999"
+                                placeholderTextColor={theme.colors.inactive}
                                 secureTextEntry
                             />
                         </View>
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>新しいパスワード（確認）</Text>
+                            <Text style={[styles.label, { color: theme.colors.text }]}>新しいパスワード（確認）</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, {
+                                    backgroundColor: theme.colors.secondaryBackground,
+                                    borderColor: theme.colors.border,
+                                    color: theme.colors.text
+                                }]}
                                 value={confirmPassword}
                                 onChangeText={setConfirmPassword}
                                 placeholder="新しいパスワードを再入力"
-                                placeholderTextColor="#999"
+                                placeholderTextColor={theme.colors.inactive}
                                 secureTextEntry
                             />
                         </View>
                         <TouchableOpacity 
-                            style={styles.button}
+                            style={[styles.button, { backgroundColor: theme.colors.primary }]}
                             onPress={handleUpdatePassword}
                         >
                             <Text style={styles.buttonText}>パスワードを変更</Text>
@@ -139,7 +162,6 @@ const LoginInfoScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
     },
     topNavBar: {
         flexDirection: 'row',
@@ -147,9 +169,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingVertical: 12,
-        backgroundColor: '#fff',
         borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
     },
     backButton: {
         padding: 4,
@@ -157,14 +177,12 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
     },
     placeholder: {
         width: 32,
     },
     scrollView: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
     },
     section: {
         marginTop: 20,
@@ -172,12 +190,10 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#666',
         paddingHorizontal: 20,
         paddingBottom: 12,
     },
     card: {
-        backgroundColor: '#fff',
         paddingHorizontal: 20,
         paddingVertical: 20,
     },
@@ -187,26 +203,20 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#333',
         marginBottom: 8,
     },
     currentValue: {
         fontSize: 16,
-        color: '#666',
         paddingVertical: 12,
     },
     input: {
-        backgroundColor: '#f5f5f5',
         borderRadius: 8,
         paddingHorizontal: 16,
         paddingVertical: 12,
         fontSize: 16,
-        color: '#333',
         borderWidth: 1,
-        borderColor: '#e0e0e0',
     },
     button: {
-        backgroundColor: '#007AFF',
         borderRadius: 8,
         paddingVertical: 14,
         alignItems: 'center',

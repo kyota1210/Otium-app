@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Text, View, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 // 画面インポート
 import LoginScreen from '../screens/LoginScreen'; 
@@ -19,6 +20,7 @@ import ProfileEditScreen from '../screens/ProfileEditScreen';
 import LoginInfoScreen from '../screens/LoginInfoScreen';
 import PremiumPlanScreen from '../screens/PremiumPlanScreen';
 import CategoryManagementScreen from '../screens/CategoryManagementScreen';
+import ThemeSettingScreen from '../screens/ThemeSettingScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -27,6 +29,8 @@ const Tab = createBottomTabNavigator();
 // メインのタブナビゲーション（ログイン後の画面）
 // ------------------------------------------------
 const MainTabNavigator = () => {
+  const { theme } = useTheme();
+  
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -48,11 +52,14 @@ const MainTabNavigator = () => {
           // アイコンサイズを少し大きく（デフォルト24→30）
           return <Ionicons name={iconName} size={30} color={color} />;
         },
-        tabBarActiveTintColor: '#007AFF', // アクティブな色（青）
-        tabBarInactiveTintColor: 'gray',  // 非アクティブな色
+        tabBarActiveTintColor: theme.colors.primary, // アクティブな色
+        tabBarInactiveTintColor: theme.colors.inactive,  // 非アクティブな色
         headerShown: false,              // タブ画面の上部タイトルバーを非表示
         tabBarShowLabel: false,          // 下部メニュー名（ラベル）を非表示（アイコンのみ）
         tabBarStyle: {
+          backgroundColor: theme.colors.card, // タブバーの背景色
+          borderTopColor: theme.colors.border, // 上部ボーダー色
+          borderTopWidth: 1,
           paddingTop: 10,                // 上部余白を追加してアイコンを中央に
           paddingBottom: 10,             // 下部余白を追加してアイコンを中央に
         },
@@ -97,12 +104,13 @@ const AuthStack = () => (
 // ------------------------------------------------
 const AppNavigator = () => {
   const { isLoading, userToken } = React.useContext(AuthContext);
+  const { theme } = useTheme();
 
   if (isLoading) {
     return (
-      <View style={styles.loadingScreen}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>認証状態を確認中...</Text>
+      <View style={[styles.loadingScreen, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={[styles.loadingText, { color: theme.colors.secondaryText }]}>認証状態を確認中...</Text>
       </View>
     );
   }
@@ -122,12 +130,16 @@ const AppNavigator = () => {
               headerShown: true, 
               title: '詳細',
               headerBackTitleVisible: false,
+              headerStyle: {
+                backgroundColor: theme.colors.background,
+              },
+              headerTintColor: theme.colors.text,
               headerLeft: () => (
                 <TouchableOpacity 
                   onPress={() => navigation.goBack()}
                   style={{ marginLeft: 8 }}
                 >
-                  <Ionicons name="arrow-back" size={24} color="#333" />
+                  <Ionicons name="arrow-back" size={24} color={theme.colors.icon} />
                 </TouchableOpacity>
               )
             })} 
@@ -175,6 +187,15 @@ const AppNavigator = () => {
               presentation: 'card'
             }} 
           />
+          {/* ↓ 追加: アプリ設定画面 */}
+          <Stack.Screen 
+            name="ThemeSetting" 
+            component={ThemeSettingScreen} 
+            options={{ 
+              headerShown: false,
+              presentation: 'card'
+            }} 
+          />
           <Stack.Screen 
             name="EditRecord" 
             component={CreateRecordScreen} 
@@ -196,12 +217,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#666',
   },
 });
 

@@ -7,6 +7,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { getImageUrl } from '../utils/imageHelper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { SERVER_URL } from '../config';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -54,6 +55,7 @@ export default function RecordListScreen({ navigation }) {
     
     const { fetchRecords } = useRecordsApi();
     const { userInfo, userToken } = useContext(AuthContext);
+    const { theme } = useTheme();
     const scrollTimeout = useRef(null);
 
     // カテゴリーを取得する関数
@@ -61,7 +63,7 @@ export default function RecordListScreen({ navigation }) {
         try {
             const fetchedCategories = await fetchCategories(userToken);
             if (fetchedCategories.length > 0) {
-                const allCategory = { id: 'all', name: 'All', icon: 'apps', color: '#007AFF' };
+                const allCategory = { id: 'all', name: 'All', icon: 'apps', color: theme.colors.primary };
                 const newCategories = [allCategory, ...fetchedCategories];
                 setCategories(newCategories);
             } else {
@@ -71,7 +73,7 @@ export default function RecordListScreen({ navigation }) {
             console.error('カテゴリー取得エラー:', error);
             setCategories([]);
         }
-    }, [userToken]);
+    }, [userToken, theme.colors.primary]);
 
     // 記録を取得する関数
     const loadRecords = useCallback(async () => {
@@ -176,7 +178,11 @@ export default function RecordListScreen({ navigation }) {
     }, [selectedCategory]);
 
     if (loading) {
-        return <View style={styles.center}><ActivityIndicator size="large" color="#007AFF" /></View>;
+        return (
+            <View style={[styles.center, { backgroundColor: theme.colors.background }]}>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
+            </View>
+        );
     }
 
     // データを3カラムに分割
@@ -185,27 +191,30 @@ export default function RecordListScreen({ navigation }) {
     const rightColumnData = records.filter((_, i) => i % 3 === 2);
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
             {/* トップナビゲーションバー */}
-            <View style={styles.topNavBar}>
-                <Text style={styles.appName}>Otium</Text>
+            <View style={[styles.topNavBar, { backgroundColor: theme.colors.background }]}>
+                <Text style={[styles.appName, { color: theme.colors.text }]}>Otium</Text>
                 <View style={styles.iconButtons}>
                     <TouchableOpacity 
                         style={styles.insightButton}
                         onPress={() => navigation.navigate('Insight')}
                     >
-                        <Ionicons name="analytics-outline" size={24} color="#333" />
+                        <Ionicons name="analytics-outline" size={24} color={theme.colors.icon} />
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.notificationButton}>
-                        <Ionicons name="notifications-outline" size={24} color="#333" />
+                        <Ionicons name="notifications-outline" size={24} color={theme.colors.icon} />
                     </TouchableOpacity>
                 </View>
             </View>
 
             {/* ユーザー情報ヘッダー */}
-            <View style={styles.userHeader}>
+            <View style={[styles.userHeader, { 
+                backgroundColor: theme.colors.background,
+                borderBottomColor: theme.colors.border 
+            }]}>
                 <TouchableOpacity 
-                    style={styles.userIconContainer}
+                    style={[styles.userIconContainer, { backgroundColor: theme.colors.secondaryBackground }]}
                     onPress={() => navigation.navigate('ProfileEdit')}
                     activeOpacity={0.7}
                 >
@@ -215,12 +224,16 @@ export default function RecordListScreen({ navigation }) {
                             style={styles.userAvatar}
                         />
                     ) : (
-                        <Ionicons name="person-circle-outline" size={70} color="#333" />
+                        <Ionicons name="person-circle-outline" size={70} color={theme.colors.icon} />
                     )}
                 </TouchableOpacity>
                 <View style={styles.userInfoText}>
-                    <Text style={styles.userNameText}>{userInfo?.user_name || 'ゲスト'}</Text>
-                    <Text style={styles.totalArchives}>Total Archives: {records.length}</Text>
+                    <Text style={[styles.userNameText, { color: theme.colors.text }]}>
+                        {userInfo?.user_name || 'ゲスト'}
+                    </Text>
+                    <Text style={[styles.totalArchives, { color: theme.colors.inactive }]}>
+                        Total Archives: {records.length}
+                    </Text>
                 </View>
                 
                 {categories.length > 0 && (
@@ -246,19 +259,20 @@ export default function RecordListScreen({ navigation }) {
                                     styles.categoryIconCircle,
                                     selectedCategory === category.id && styles.categoryIconCircleSelected,
                                     { 
-                                        backgroundColor: category.color ? `${category.color}20` : '#f0f0f0',
-                                        borderColor: selectedCategory === category.id ? (category.color || '#007AFF') : 'transparent'
+                                        backgroundColor: category.color ? `${category.color}20` : theme.colors.secondaryBackground,
+                                        borderColor: selectedCategory === category.id ? (category.color || theme.colors.primary) : 'transparent'
                                     }
                                 ]}>
                                     <Ionicons 
                                         name={category.icon} 
                                         size={20} 
-                                        color={category.color || '#666'} 
+                                        color={category.color || theme.colors.secondaryText} 
                                     />
                                 </View>
                                 <Text style={[
                                     styles.categoryName,
-                                    selectedCategory === category.id && styles.categoryNameSelected
+                                    { color: theme.colors.secondaryText },
+                                    selectedCategory === category.id && [styles.categoryNameSelected, { color: theme.colors.text }]
                                 ]}>
                                     {category.name}
                                 </Text>
@@ -280,9 +294,11 @@ export default function RecordListScreen({ navigation }) {
                         </View>
                     ) : (
                         <View style={styles.emptyContainer}>
-                            <Ionicons name="document-text-outline" size={64} color="#ccc" />
-                            <Text style={styles.emptyText}>まだ記録がありません。</Text>
-                            <Text style={styles.emptySubText}>下の「作成」タブから新しい記録を追加しましょう。</Text>
+                            <Ionicons name="document-text-outline" size={64} color={theme.colors.border} />
+                            <Text style={[styles.emptyText, { color: theme.colors.border }]}>まだ記録がありません。</Text>
+                            <Text style={[styles.emptySubText, { color: theme.colors.inactive }]}>
+                                下の「作成」タブから新しい記録を追加しましょう。
+                            </Text>
                         </View>
                     )}
                 </ScrollView>
@@ -290,7 +306,11 @@ export default function RecordListScreen({ navigation }) {
                 {/* フローティング日付インジケーター */}
                 {showDateLabel && currentDateLabel !== '' && (
                     <View style={styles.floatingDateContainer}>
-                        <Text style={styles.floatingDateText}>{currentDateLabel}</Text>
+                        <Text style={[styles.floatingDateText, { 
+                            color: theme.isDark ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)' 
+                        }]}>
+                            {currentDateLabel}
+                        </Text>
                     </View>
                 )}
             </View>
@@ -300,8 +320,7 @@ export default function RecordListScreen({ navigation }) {
 
 const styles = StyleSheet.create({
     container: { 
-        flex: 1, 
-        backgroundColor: '#fff',
+        flex: 1,
     },
     topNavBar: {
         flexDirection: 'row',
@@ -310,12 +329,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingTop: 2,
         paddingBottom: 0,
-        backgroundColor: '#fff',
     },
     appName: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#333',
     },
     iconButtons: {
         flexDirection: 'row',
@@ -334,9 +351,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingTop: 4,
         paddingBottom: 6,
-        backgroundColor: '#fff',
         borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
     },
     userIconContainer: {
         marginRight: 12,
@@ -346,7 +361,6 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#f8f8f8',
     },
     userAvatar: {
         width: 60,
@@ -360,11 +374,9 @@ const styles = StyleSheet.create({
     userNameText: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#333',
     },
     totalArchives: {
         fontSize: 12,
-        color: '#999',
     },
     categoryScrollContainer: {
         flex: 1,
@@ -394,12 +406,10 @@ const styles = StyleSheet.create({
     },
     categoryName: {
         fontSize: 10,
-        color: '#666',
         marginTop: 4,
     },
     categoryNameSelected: {
         fontWeight: 'bold',
-        color: '#333',
     },
     mainContent: {
         flex: 1,
@@ -467,7 +477,6 @@ const styles = StyleSheet.create({
     floatingDateText: {
         fontSize: 14,
         fontWeight: '300',
-        color: 'rgba(0, 0, 0, 0.3)', // かなりうっすら
         letterSpacing: 4,
         textTransform: 'uppercase',
     },
@@ -478,12 +487,10 @@ const styles = StyleSheet.create({
     emptyText: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#ccc',
         marginTop: 16,
     },
     emptySubText: {
         fontSize: 14,
-        color: '#ddd',
         marginTop: 8,
         textAlign: 'center',
     },

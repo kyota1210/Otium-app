@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRecordsApi } from '../api/records';
+import { useTheme } from '../context/ThemeContext';
 import { getImageUrl } from '../utils/imageHelper';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -11,6 +12,7 @@ export default function RecordDetailScreen({ route, navigation }) {
     const [loading, setLoading] = useState(false);
     const [imageAspectRatio, setImageAspectRatio] = useState(1);
     const { deleteRecord, fetchRecordById } = useRecordsApi();
+    const { theme } = useTheme();
 
     // 画面が表示されるたびに最新データを取得
     useFocusEffect(
@@ -76,7 +78,7 @@ export default function RecordDetailScreen({ route, navigation }) {
     const dateString = date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
             <ScrollView contentContainerStyle={styles.content}>
                 {/* 画像があれば表示、なければプレースホルダー */}
                 {imageUrl ? (
@@ -84,23 +86,30 @@ export default function RecordDetailScreen({ route, navigation }) {
                         <Image source={{ uri: imageUrl }} style={styles.image} />
                     </View>
                 ) : (
-                    <View style={styles.placeholderImageContainer}>
-                        <Ionicons name="image-outline" size={80} color="#ccc" />
-                        <Text style={styles.placeholderText}>No Image</Text>
+                    <View style={[styles.placeholderImageContainer, { backgroundColor: theme.colors.border }]}>
+                        <Ionicons name="image-outline" size={80} color={theme.colors.inactive} />
+                        <Text style={[styles.placeholderText, { color: theme.colors.inactive }]}>No Image</Text>
                     </View>
                 )}
 
                 <View style={styles.infoContainer}>
-                    <Text style={styles.date}>{dateString}</Text>
-                    <Text style={styles.title}>{record.title}</Text>
-                    {record.description && <Text style={styles.description}>{record.description}</Text>}
+                    <Text style={[styles.date, { color: theme.colors.secondaryText }]}>{dateString}</Text>
+                    <Text style={[styles.title, { color: theme.colors.text }]}>{record.title}</Text>
+                    {record.description && (
+                        <Text style={[styles.description, { color: theme.colors.secondaryText }]}>
+                            {record.description}
+                        </Text>
+                    )}
                 </View>
             </ScrollView>
 
-            <View style={styles.footer}>
+            <View style={[styles.footer, { 
+                backgroundColor: theme.colors.background,
+                borderTopColor: theme.colors.border 
+            }]}>
                 <TouchableOpacity style={styles.footerButton} onPress={handleEdit}>
-                    <Ionicons name="create-outline" size={24} color="#007AFF" />
-                    <Text style={styles.footerButtonText}>編集</Text>
+                    <Ionicons name="create-outline" size={24} color={theme.colors.primary} />
+                    <Text style={[styles.footerButtonText, { color: theme.colors.primary }]}>編集</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
                     <Ionicons name="trash-outline" size={24} color="#FF3B30" />
@@ -111,7 +120,9 @@ export default function RecordDetailScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#fff' },
+    container: { 
+        flex: 1,
+    },
     content: { paddingBottom: 80 },
     imageContainer: {
         width: '100%',
@@ -127,29 +138,44 @@ const styles = StyleSheet.create({
         height: 250,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#e1e1e1',
     },
-    placeholderText: { color: '#999', marginTop: 10 },
+    placeholderText: { 
+        marginTop: 10 
+    },
     infoContainer: { padding: 20 },
-    date: { fontSize: 14, color: '#666', marginBottom: 8 },
-    title: { fontSize: 24, fontWeight: 'bold', color: '#333', marginBottom: 16 },
-    description: { fontSize: 16, color: '#444', lineHeight: 24 },
+    date: { 
+        fontSize: 14, 
+        marginBottom: 8 
+    },
+    title: { 
+        fontSize: 24, 
+        fontWeight: 'bold', 
+        marginBottom: 16 
+    },
+    description: { 
+        fontSize: 16, 
+        lineHeight: 24 
+    },
     footer: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
         height: 80,
-        backgroundColor: '#fff',
         borderTopWidth: 1,
-        borderTopColor: '#eee',
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 30,
         paddingBottom: 20, // iPhoneの下部バー領域用
     },
-    footerButton: { flexDirection: 'row', alignItems: 'center' },
-    footerButtonText: { marginLeft: 8, fontSize: 16, color: '#007AFF' },
+    footerButton: { 
+        flexDirection: 'row', 
+        alignItems: 'center' 
+    },
+    footerButtonText: { 
+        marginLeft: 8, 
+        fontSize: 16,
+    },
     deleteButton: { padding: 10 },
 });

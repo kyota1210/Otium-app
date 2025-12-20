@@ -7,11 +7,13 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthContext } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { getImageUrl } from '../utils/imageHelper';
 
 export default function CreateRecordScreen({ navigation, route }) {
     const insets = useSafeAreaInsets();
     const { userToken } = useContext(AuthContext);
+    const { theme } = useTheme();
     
     // 編集モードの判定
     const editRecord = route.params?.record;
@@ -126,23 +128,26 @@ export default function CreateRecordScreen({ navigation, route }) {
     });
 
     return (
-        <SafeAreaView style={styles.container} edges={isEditMode ? ['bottom'] : ['top']}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={isEditMode ? ['bottom'] : ['top']}>
             <KeyboardAvoidingView 
-                style={styles.container} 
+                style={[styles.container, { backgroundColor: theme.colors.background }]} 
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
             >
                 {isEditMode && (
-                    <View style={styles.header}>
+                    <View style={[styles.header, { 
+                        backgroundColor: theme.colors.background,
+                        borderBottomColor: theme.colors.border 
+                    }]}>
                         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButton}>
-                            <Ionicons name="close" size={28} color="#333" />
+                            <Ionicons name="close" size={28} color={theme.colors.icon} />
                         </TouchableOpacity>
-                        <Text style={styles.headerTitle}>記録を編集</Text>
+                        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>記録を編集</Text>
                         <TouchableOpacity onPress={handleSave} disabled={loading} style={styles.saveButton}>
                             {loading ? (
-                                <ActivityIndicator size="small" color="#007AFF" />
+                                <ActivityIndicator size="small" color={theme.colors.primary} />
                             ) : (
-                                <Text style={styles.saveButtonText}>更新</Text>
+                                <Text style={[styles.saveButtonText, { color: theme.colors.primary }]}>更新</Text>
                             )}
                         </TouchableOpacity>
                     </View>
@@ -166,9 +171,12 @@ export default function CreateRecordScreen({ navigation, route }) {
                                 </TouchableOpacity>
                             </View>
                         ) : (
-                            <TouchableOpacity style={styles.imageSelectButton} onPress={pickImage}>
-                                <Ionicons name="camera" size={40} color="#007AFF" />
-                                <Text style={styles.imageSelectText}>写真を追加</Text>
+                            <TouchableOpacity style={[styles.imageSelectButton, {
+                                backgroundColor: theme.isDark ? '#1a2a3a' : '#f0f5ff',
+                                borderColor: theme.isDark ? '#2a3a4a' : '#d0e0ff'
+                            }]} onPress={pickImage}>
+                                <Ionicons name="camera" size={40} color={theme.colors.primary} />
+                                <Text style={[styles.imageSelectText, { color: theme.colors.primary }]}>写真を追加</Text>
                             </TouchableOpacity>
                         )}
                     </View>
@@ -176,14 +184,19 @@ export default function CreateRecordScreen({ navigation, route }) {
                     {/* 入力フォームエリア */}
                     <View style={styles.formSection}>
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>日付 <Text style={styles.required}>*</Text></Text>
+                            <Text style={[styles.label, { color: theme.colors.secondaryText }]}>
+                                日付 <Text style={styles.required}>*</Text>
+                            </Text>
                             <TouchableOpacity 
-                                style={styles.dateInputContainer} 
+                                style={[styles.dateInputContainer, { 
+                                    backgroundColor: theme.colors.secondaryBackground,
+                                    borderColor: theme.colors.border 
+                                }]} 
                                 onPress={() => setShowDatePicker(true)}
                                 activeOpacity={0.7}
                             >
-                                <Ionicons name="calendar-outline" size={24} color="#555" style={{ marginRight: 10 }} />
-                                <Text style={styles.dateInputValue}>{formattedDate}</Text>
+                                <Ionicons name="calendar-outline" size={24} color={theme.colors.secondaryText} style={{ marginRight: 10 }} />
+                                <Text style={[styles.dateInputValue, { color: theme.colors.text }]}>{formattedDate}</Text>
                             </TouchableOpacity>
                             
                             {showDatePicker && Platform.OS === 'android' && (
@@ -225,9 +238,9 @@ export default function CreateRecordScreen({ navigation, route }) {
                         </View>
 
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>カテゴリー</Text>
+                            <Text style={[styles.label, { color: theme.colors.secondaryText }]}>カテゴリー</Text>
                             {categoriesLoading ? (
-                                <ActivityIndicator size="small" color="#007AFF" />
+                                <ActivityIndicator size="small" color={theme.colors.primary} />
                             ) : (
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryPicker}>
                                     {categories.map(category => (
@@ -235,19 +248,32 @@ export default function CreateRecordScreen({ navigation, route }) {
                                             key={category.id}
                                             style={[
                                                 styles.categoryOption,
-                                                selectedCategoryId === category.id && styles.categoryOptionSelected,
-                                                { borderColor: selectedCategoryId === category.id ? (category.color || '#007AFF') : '#eee' }
+                                                { 
+                                                    backgroundColor: theme.colors.secondaryBackground,
+                                                    borderColor: theme.colors.border 
+                                                },
+                                                selectedCategoryId === category.id && [
+                                                    styles.categoryOptionSelected,
+                                                    { 
+                                                        backgroundColor: theme.colors.card,
+                                                        borderColor: category.color || theme.colors.primary 
+                                                    }
+                                                ]
                                             ]}
                                             onPress={() => setSelectedCategoryId(category.id === selectedCategoryId ? null : category.id)}
                                         >
                                             <Ionicons 
                                                 name={category.icon || 'folder-outline'} 
                                                 size={18} 
-                                                color={selectedCategoryId === category.id ? (category.color || '#007AFF') : '#666'} 
+                                                color={selectedCategoryId === category.id ? (category.color || theme.colors.primary) : theme.colors.secondaryText} 
                                             />
                                             <Text style={[
                                                 styles.categoryOptionText,
-                                                selectedCategoryId === category.id && { color: category.color || '#007AFF', fontWeight: 'bold' }
+                                                { color: theme.colors.secondaryText },
+                                                selectedCategoryId === category.id && { 
+                                                    color: category.color || theme.colors.primary, 
+                                                    fontWeight: 'bold' 
+                                                }
                                             ]}>
                                                 {category.name}
                                             </Text>
@@ -258,10 +284,15 @@ export default function CreateRecordScreen({ navigation, route }) {
                         </View>
 
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>タイトル</Text>
+                            <Text style={[styles.label, { color: theme.colors.secondaryText }]}>タイトル</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { 
+                                    backgroundColor: theme.colors.secondaryBackground,
+                                    borderColor: theme.colors.border,
+                                    color: theme.colors.text 
+                                }]}
                                 placeholder="タイトルを入力"
+                                placeholderTextColor={theme.colors.inactive}
                                 value={title}
                                 onChangeText={setTitle}
                             />
@@ -269,10 +300,15 @@ export default function CreateRecordScreen({ navigation, route }) {
 
                         {/* コメントエリア */}
                         <View style={styles.commentGroup}>
-                            <Text style={styles.label}>コメント</Text>
+                            <Text style={[styles.label, { color: theme.colors.secondaryText }]}>コメント</Text>
                             <TextInput
-                                style={[styles.input, styles.textArea]}
+                                style={[styles.input, styles.textArea, { 
+                                    backgroundColor: theme.colors.secondaryBackground,
+                                    borderColor: theme.colors.border,
+                                    color: theme.colors.text 
+                                }]}
                                 placeholder="コメントを入力..."
+                                placeholderTextColor={theme.colors.inactive}
                                 value={description}
                                 onChangeText={setDescription}
                                 multiline
@@ -283,7 +319,11 @@ export default function CreateRecordScreen({ navigation, route }) {
                     {/* 作成ボタン（新規作成モードのみ） */}
                     {!isEditMode && (
                         <TouchableOpacity
-                            style={[styles.createButton, loading && styles.disabledButton]}
+                            style={[
+                                styles.createButton, 
+                                { backgroundColor: theme.colors.primary },
+                                loading && styles.disabledButton
+                            ]}
                             onPress={handleSave}
                             disabled={loading}
                         >
@@ -302,7 +342,6 @@ export default function CreateRecordScreen({ navigation, route }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
     },
     header: {
         flexDirection: 'row',
@@ -311,12 +350,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
     },
     closeButton: {
         padding: 4,
@@ -328,7 +365,6 @@ const styles = StyleSheet.create({
     saveButtonText: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#007AFF',
     },
     scrollContent: {
         flexGrow: 1,
@@ -348,19 +384,15 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: '600',
         marginBottom: 4,
-        color: '#555',
     },
     required: {
         color: '#FF3B30',
     },
     input: {
         borderWidth: 1,
-        borderColor: '#eee',
         padding: 10, 
         borderRadius: 12,
-        backgroundColor: '#f9f9f9',
         fontSize: 15,
-        color: '#333',
     },
     textArea: {
         textAlignVertical: 'top',
@@ -373,17 +405,14 @@ const styles = StyleSheet.create({
     },
     imageSelectButton: {
         flex: 1,
-        backgroundColor: '#f0f5ff',
         borderRadius: 16,
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#d0e0ff',
         borderStyle: 'dashed',
     },
     imageSelectText: {
         marginTop: 8,
-        color: '#007AFF',
         fontSize: 14,
         fontWeight: '500',
     },
@@ -408,17 +437,14 @@ const styles = StyleSheet.create({
     },
     dateInputContainer: {
         borderWidth: 1,
-        borderColor: '#eee',
         padding: 12,
         borderRadius: 12,
-        backgroundColor: '#f9f9f9',
         flexDirection: 'row',
         justifyContent: 'flex-start',
         alignItems: 'center',
     },
     dateInputValue: {
         fontSize: 16,
-        color: '#333',
     },
     modalOverlay: {
         flex: 1,
@@ -438,14 +464,13 @@ const styles = StyleSheet.create({
         height: 320,
     },
     createButton: {
-        backgroundColor: '#007AFF',
         borderRadius: 30,
         paddingVertical: 14,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: 8,
-        shadowColor: "#007AFF",
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
@@ -470,16 +495,13 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         borderRadius: 20,
         borderWidth: 1,
-        borderColor: '#eee',
         marginRight: 10,
-        backgroundColor: '#f9f9f9',
     },
     categoryOptionSelected: {
-        backgroundColor: '#fff',
+        // 選択時のスタイルは動的に適用
     },
     categoryOptionText: {
         marginLeft: 6,
         fontSize: 14,
-        color: '#666',
     },
 });

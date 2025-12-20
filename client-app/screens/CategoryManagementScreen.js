@@ -4,14 +4,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { AuthContext } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { fetchCategories, createCategory, updateCategory, deleteCategory } from '../api/categories';
 
 const CategoryManagementScreen = ({ navigation }) => {
     const { userToken } = useContext(AuthContext);
+    const { theme } = useTheme();
     
     // デフォルトカテゴリー（削除不可、DBには保存しない）
     const defaultCategories = [
-        { id: 'all', name: 'All', icon: 'apps', color: '#007AFF', isDefault: true },
+        { id: 'all', name: 'All', icon: 'apps', color: theme.colors.primary, isDefault: true },
     ];
 
     // ユーザーカスタムカテゴリー
@@ -22,7 +24,7 @@ const CategoryManagementScreen = ({ navigation }) => {
     const [editingCategory, setEditingCategory] = useState(null);
     const [categoryName, setCategoryName] = useState('');
     const [selectedIcon, setSelectedIcon] = useState('bookmark');
-    const [selectedColor, setSelectedColor] = useState('#007AFF');
+    const [selectedColor, setSelectedColor] = useState(theme.colors.primary);
 
     // カテゴリーを読み込む関数
     const loadCategories = React.useCallback(async () => {
@@ -150,31 +152,36 @@ const CategoryManagementScreen = ({ navigation }) => {
         setEditingCategory(null);
         setCategoryName('');
         setSelectedIcon('bookmark');
-        setSelectedColor('#007AFF');
+        setSelectedColor(theme.colors.primary);
     };
 
     const allCategories = [...defaultCategories, ...customCategories];
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
             {/* トップナビゲーションバー */}
-            <View style={styles.topNavBar}>
+            <View style={[styles.topNavBar, {
+                backgroundColor: theme.colors.background,
+                borderBottomColor: theme.colors.border
+            }]}>
                 <TouchableOpacity 
                     style={styles.backButton}
                     onPress={() => navigation.goBack()}
                 >
-                    <Ionicons name="arrow-back" size={24} color="#333" />
+                    <Ionicons name="arrow-back" size={24} color={theme.colors.icon} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>カテゴリー管理</Text>
+                <Text style={[styles.headerTitle, { color: theme.colors.text }]}>カテゴリー管理</Text>
                 <View style={styles.placeholder} />
             </View>
 
-            <ScrollView style={styles.scrollView}>
+            <ScrollView style={[styles.scrollView, { backgroundColor: theme.colors.secondaryBackground }]}>
                 {/* カテゴリーリスト */}
                 <View style={styles.section}>
-                    <View style={styles.categoryList}>
+                    <View style={[styles.categoryList, { backgroundColor: theme.colors.card }]}>
                         {allCategories.map((category) => (
-                            <View key={category.id} style={styles.categoryCard}>
+                            <View key={category.id} style={[styles.categoryCard, {
+                                borderBottomColor: theme.colors.border
+                            }]}>
                                 <View style={styles.categoryInfo}>
                                     <View 
                                         style={[
@@ -184,7 +191,9 @@ const CategoryManagementScreen = ({ navigation }) => {
                                     >
                                         <Ionicons name={category.icon} size={24} color="#fff" />
                                     </View>
-                                    <Text style={styles.categoryNameText}>{category.name}</Text>
+                                    <Text style={[styles.categoryNameText, { color: theme.colors.text }]}>
+                                        {category.name}
+                                    </Text>
                                 </View>
                                 {!category.isDefault && (
                                     <View style={styles.categoryActions}>
@@ -192,7 +201,7 @@ const CategoryManagementScreen = ({ navigation }) => {
                                             style={styles.actionButton}
                                             onPress={() => openEditModal(category)}
                                         >
-                                            <Ionicons name="create-outline" size={22} color="#007AFF" />
+                                            <Ionicons name="create-outline" size={22} color={theme.colors.primary} />
                                         </TouchableOpacity>
                                         <TouchableOpacity
                                             style={styles.actionButton}
@@ -210,7 +219,7 @@ const CategoryManagementScreen = ({ navigation }) => {
                 {/* 追加ボタン */}
                 <View style={styles.addButtonSection}>
                     <TouchableOpacity 
-                        style={styles.addButton}
+                        style={[styles.addButton, { backgroundColor: theme.colors.primary }]}
                         onPress={() => setShowAddModal(true)}
                     >
                         <Ionicons name="add-circle" size={24} color="#fff" />
@@ -227,46 +236,60 @@ const CategoryManagementScreen = ({ navigation }) => {
                 onRequestClose={resetForm}
             >
                 <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>
+                    <View style={[styles.modalContent, { backgroundColor: theme.colors.card }]}>
+                        <View style={[styles.modalHeader, { borderBottomColor: theme.colors.border }]}>
+                            <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
                                 {editingCategory ? 'カテゴリーを編集' : '新しいカテゴリー'}
                             </Text>
                             <TouchableOpacity onPress={resetForm}>
-                                <Ionicons name="close" size={28} color="#333" />
+                                <Ionicons name="close" size={28} color={theme.colors.icon} />
                             </TouchableOpacity>
                         </View>
 
                         <ScrollView style={styles.modalBody}>
                             {/* カテゴリー名 */}
                             <View style={styles.inputGroup}>
-                                <Text style={styles.label}>カテゴリー名</Text>
+                                <Text style={[styles.label, { color: theme.colors.text }]}>カテゴリー名</Text>
                                 <TextInput
-                                    style={styles.input}
+                                    style={[styles.input, {
+                                        backgroundColor: theme.colors.secondaryBackground,
+                                        borderColor: theme.colors.border,
+                                        color: theme.colors.text
+                                    }]}
                                     value={categoryName}
                                     onChangeText={setCategoryName}
                                     placeholder="例: 読書、運動、料理"
-                                    placeholderTextColor="#999"
+                                    placeholderTextColor={theme.colors.inactive}
                                 />
                             </View>
 
                             {/* アイコン選択 */}
                             <View style={styles.inputGroup}>
-                                <Text style={styles.label}>アイコン</Text>
+                                <Text style={[styles.label, { color: theme.colors.text }]}>アイコン</Text>
                                 <View style={styles.iconGrid}>
                                     {availableIcons.map((icon) => (
                                         <TouchableOpacity
                                             key={icon}
                                             style={[
                                                 styles.iconOption,
-                                                selectedIcon === icon && styles.iconOptionSelected
+                                                { 
+                                                    backgroundColor: theme.colors.secondaryBackground,
+                                                    borderColor: 'transparent'
+                                                },
+                                                selectedIcon === icon && [
+                                                    styles.iconOptionSelected,
+                                                    { 
+                                                        borderColor: theme.colors.primary,
+                                                        backgroundColor: theme.isDark ? '#1a3a5c' : '#E8F4FF'
+                                                    }
+                                                ]
                                             ]}
                                             onPress={() => setSelectedIcon(icon)}
                                         >
                                             <Ionicons 
                                                 name={icon} 
                                                 size={28} 
-                                                color={selectedIcon === icon ? '#007AFF' : '#666'} 
+                                                color={selectedIcon === icon ? theme.colors.primary : theme.colors.secondaryText} 
                                             />
                                         </TouchableOpacity>
                                     ))}
@@ -297,8 +320,11 @@ const CategoryManagementScreen = ({ navigation }) => {
 
                             {/* プレビュー */}
                             <View style={styles.previewSection}>
-                                <Text style={styles.label}>プレビュー</Text>
-                                <View style={styles.previewCard}>
+                                <Text style={[styles.label, { color: theme.colors.text }]}>プレビュー</Text>
+                                <View style={[styles.previewCard, {
+                                    backgroundColor: theme.colors.secondaryBackground,
+                                    borderColor: theme.colors.border
+                                }]}>
                                     <View 
                                         style={[
                                             styles.previewIcon, 
@@ -307,7 +333,7 @@ const CategoryManagementScreen = ({ navigation }) => {
                                     >
                                         <Ionicons name={selectedIcon} size={32} color="#fff" />
                                     </View>
-                                    <Text style={styles.previewText}>
+                                    <Text style={[styles.previewText, { color: theme.colors.text }]}>
                                         {categoryName || 'カテゴリー名'}
                                     </Text>
                                 </View>
@@ -315,15 +341,23 @@ const CategoryManagementScreen = ({ navigation }) => {
                         </ScrollView>
 
                         {/* ボタン */}
-                        <View style={styles.modalFooter}>
+                        <View style={[styles.modalFooter, { 
+                            borderTopColor: theme.colors.border,
+                            backgroundColor: theme.colors.card
+                        }]}>
                             <TouchableOpacity 
-                                style={styles.cancelButton}
+                                style={[styles.cancelButton, {
+                                    backgroundColor: theme.colors.secondaryBackground,
+                                    borderColor: theme.colors.border
+                                }]}
                                 onPress={resetForm}
                             >
-                                <Text style={styles.cancelButtonText}>キャンセル</Text>
+                                <Text style={[styles.cancelButtonText, { color: theme.colors.secondaryText }]}>
+                                    キャンセル
+                                </Text>
                             </TouchableOpacity>
                             <TouchableOpacity 
-                                style={styles.saveButton}
+                                style={[styles.saveButton, { backgroundColor: theme.colors.primary }]}
                                 onPress={editingCategory ? handleEditCategory : handleAddCategory}
                             >
                                 <Text style={styles.saveButtonText}>
@@ -341,7 +375,6 @@ const CategoryManagementScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
     },
     topNavBar: {
         flexDirection: 'row',
@@ -349,9 +382,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingVertical: 12,
-        backgroundColor: '#fff',
         borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
     },
     backButton: {
         padding: 4,
@@ -359,21 +390,18 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
     },
     placeholder: {
         width: 32,
     },
     scrollView: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
     },
     section: {
         marginHorizontal: 16,
         marginBottom: 16,
     },
     categoryList: {
-        backgroundColor: '#fff',
         borderRadius: 12,
         overflow: 'hidden',
         marginTop: 16,
@@ -385,7 +413,6 @@ const styles = StyleSheet.create({
         paddingVertical: 16,
         paddingHorizontal: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
     },
     categoryInfo: {
         flexDirection: 'row',
@@ -403,7 +430,6 @@ const styles = StyleSheet.create({
     categoryNameText: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#333',
         flex: 1,
     },
     defaultBadge: {
@@ -427,7 +453,6 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     addButton: {
-        backgroundColor: '#007AFF',
         borderRadius: 12,
         paddingVertical: 16,
         flexDirection: 'row',
@@ -447,7 +472,6 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: '#fff',
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         maxHeight: '92%',
@@ -465,12 +489,10 @@ const styles = StyleSheet.create({
         paddingTop: 24,
         paddingBottom: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
     },
     modalTitle: {
         fontSize: 22,
         fontWeight: 'bold',
-        color: '#1a1a1a',
         letterSpacing: 0.3,
     },
     modalBody: {
@@ -484,19 +506,15 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 15,
         fontWeight: '600',
-        color: '#1a1a1a',
         marginBottom: 6,
         letterSpacing: 0.2,
     },
     input: {
-        backgroundColor: '#f8f9fa',
         borderRadius: 12,
         paddingHorizontal: 16,
         paddingVertical: 14,
         fontSize: 16,
-        color: '#1a1a1a',
         borderWidth: 1,
-        borderColor: '#e8e8e8',
     },
     iconGrid: {
         flexDirection: 'row',
@@ -509,16 +527,12 @@ const styles = StyleSheet.create({
         width: '14.36%',
         aspectRatio: 1,
         borderRadius: 12,
-        backgroundColor: '#f8f9fa',
         justifyContent: 'center',
         alignItems: 'center',
         margin: 4,
         borderWidth: 2,
-        borderColor: 'transparent',
     },
     iconOptionSelected: {
-        borderColor: '#007AFF',
-        backgroundColor: '#E8F4FF',
         transform: [{ scale: 1.05 }],
     },
     colorGrid: {
@@ -554,11 +568,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 32,
         paddingHorizontal: 24,
-        backgroundColor: '#f8f9fa',
         borderRadius: 16,
         marginTop: 8,
         borderWidth: 1,
-        borderColor: '#e8e8e8',
     },
     previewIcon: {
         width: 88,
@@ -576,7 +588,6 @@ const styles = StyleSheet.create({
     previewText: {
         fontSize: 19,
         fontWeight: '600',
-        color: '#1a1a1a',
         letterSpacing: 0.3,
     },
     modalFooter: {
@@ -585,23 +596,18 @@ const styles = StyleSheet.create({
         paddingVertical: 20,
         paddingBottom: 32,
         borderTopWidth: 1,
-        borderTopColor: '#f0f0f0',
-        backgroundColor: '#fff',
     },
     cancelButton: {
         flex: 1,
         paddingVertical: 16,
         marginRight: 8,
         borderRadius: 12,
-        backgroundColor: '#f5f5f5',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#e8e8e8',
     },
     cancelButtonText: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#666',
         letterSpacing: 0.2,
     },
     saveButton: {
@@ -609,9 +615,8 @@ const styles = StyleSheet.create({
         paddingVertical: 16,
         marginLeft: 8,
         borderRadius: 12,
-        backgroundColor: '#007AFF',
         alignItems: 'center',
-        shadowColor: '#007AFF',
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.3,
         shadowRadius: 4,

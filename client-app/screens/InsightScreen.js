@@ -2,6 +2,7 @@ import React, { useContext, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRecordsApi } from '../api/records';
 import { useFocusEffect } from '@react-navigation/native';
@@ -10,6 +11,7 @@ const { width } = Dimensions.get('window');
 
 const InsightScreen = ({ navigation }) => {
     const { authContext, userInfo } = useContext(AuthContext);
+    const { theme } = useTheme();
     const { fetchRecords } = useRecordsApi();
     const [records, setRecords] = useState([]);
     const [stats, setStats] = useState({
@@ -73,78 +75,94 @@ const InsightScreen = ({ navigation }) => {
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
             {/* トップナビゲーションバー */}
-            <View style={styles.topNavBar}>
+            <View style={[styles.topNavBar, { 
+                backgroundColor: theme.colors.background,
+                borderBottomColor: theme.colors.border 
+            }]}>
                 <TouchableOpacity 
                     style={styles.backButton}
                     onPress={() => navigation.goBack()}
                 >
-                    <Ionicons name="arrow-back" size={24} color="#333" />
+                    <Ionicons name="arrow-back" size={24} color={theme.colors.icon} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Insight</Text>
+                <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Insight</Text>
                 <View style={styles.placeholder} />
             </View>
 
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+            <ScrollView 
+                style={[styles.scrollView, { backgroundColor: theme.colors.secondaryBackground }]} 
+                showsVerticalScrollIndicator={false}
+            >
                 {/* 統計カードグリッド */}
                 <View style={styles.statsGrid}>
-                    <View style={styles.statCard}>
-                        <View style={[styles.statIconContainer, { backgroundColor: '#E8F4FF' }]}>
-                            <Ionicons name="albums" size={24} color="#007AFF" />
+                    <View style={[styles.statCard, { backgroundColor: theme.colors.card }]}>
+                        <View style={[styles.statIconContainer, { 
+                            backgroundColor: theme.isDark ? '#1a3a5c' : '#E8F4FF' 
+                        }]}>
+                            <Ionicons name="albums" size={24} color={theme.colors.primary} />
                         </View>
-                        <Text style={styles.statValue}>{stats.totalRecords}</Text>
-                        <Text style={styles.statLabel}>総記録数</Text>
+                        <Text style={[styles.statValue, { color: theme.colors.text }]}>{stats.totalRecords}</Text>
+                        <Text style={[styles.statLabel, { color: theme.colors.secondaryText }]}>総記録数</Text>
                     </View>
                     
-                    <View style={styles.statCard}>
-                        <View style={[styles.statIconContainer, { backgroundColor: '#FFF3E0' }]}>
+                    <View style={[styles.statCard, { backgroundColor: theme.colors.card }]}>
+                        <View style={[styles.statIconContainer, { 
+                            backgroundColor: theme.isDark ? '#3d2a1a' : '#FFF3E0' 
+                        }]}>
                             <Ionicons name="calendar" size={24} color="#FF9800" />
                         </View>
-                        <Text style={styles.statValue}>{stats.thisMonth}</Text>
-                        <Text style={styles.statLabel}>今月</Text>
+                        <Text style={[styles.statValue, { color: theme.colors.text }]}>{stats.thisMonth}</Text>
+                        <Text style={[styles.statLabel, { color: theme.colors.secondaryText }]}>今月</Text>
                     </View>
                     
-                    <View style={styles.statCard}>
-                        <View style={[styles.statIconContainer, { backgroundColor: '#F3E5F5' }]}>
+                    <View style={[styles.statCard, { backgroundColor: theme.colors.card }]}>
+                        <View style={[styles.statIconContainer, { 
+                            backgroundColor: theme.isDark ? '#2d1f36' : '#F3E5F5' 
+                        }]}>
                             <Ionicons name="time" size={24} color="#9C27B0" />
                         </View>
-                        <Text style={styles.statValue}>{stats.thisWeek}</Text>
-                        <Text style={styles.statLabel}>今週</Text>
+                        <Text style={[styles.statValue, { color: theme.colors.text }]}>{stats.thisWeek}</Text>
+                        <Text style={[styles.statLabel, { color: theme.colors.secondaryText }]}>今週</Text>
                     </View>
                     
-                    <View style={styles.statCard}>
-                        <View style={[styles.statIconContainer, { backgroundColor: '#E8F5E9' }]}>
+                    <View style={[styles.statCard, { backgroundColor: theme.colors.card }]}>
+                        <View style={[styles.statIconContainer, { 
+                            backgroundColor: theme.isDark ? '#1a2f1f' : '#E8F5E9' 
+                        }]}>
                             <Ionicons name="grid" size={24} color="#4CAF50" />
                         </View>
-                        <Text style={styles.statValue}>{stats.categoriesCount}</Text>
-                        <Text style={styles.statLabel}>カテゴリー</Text>
+                        <Text style={[styles.statValue, { color: theme.colors.text }]}>{stats.categoriesCount}</Text>
+                        <Text style={[styles.statLabel, { color: theme.colors.secondaryText }]}>カテゴリー</Text>
                     </View>
                 </View>
 
                 {/* アクティビティサマリー */}
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
-                        <Ionicons name="trending-up" size={20} color="#007AFF" />
-                        <Text style={styles.sectionTitle}>アクティビティ</Text>
+                        <Ionicons name="trending-up" size={20} color={theme.colors.primary} />
+                        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>アクティビティ</Text>
                     </View>
-                    <View style={styles.activityCard}>
+                    <View style={[styles.activityCard, { backgroundColor: theme.colors.card }]}>
                         <View style={styles.activityRow}>
-                            <View style={styles.activityDot} />
-                            <Text style={styles.activityText}>
-                                平均 <Text style={styles.activityValue}>{stats.totalRecords > 0 ? Math.round(stats.totalRecords / 12) : 0}</Text> 件/月
+                            <View style={[styles.activityDot, { backgroundColor: theme.colors.primary }]} />
+                            <Text style={[styles.activityText, { color: theme.colors.secondaryText }]}>
+                                平均 <Text style={[styles.activityValue, { color: theme.colors.text }]}>
+                                    {stats.totalRecords > 0 ? Math.round(stats.totalRecords / 12) : 0}
+                                </Text> 件/月
                             </Text>
                         </View>
                         <View style={styles.activityRow}>
-                            <View style={styles.activityDot} />
-                            <Text style={styles.activityText}>
-                                最長ストリーク <Text style={styles.activityValue}>7</Text> 日
+                            <View style={[styles.activityDot, { backgroundColor: theme.colors.primary }]} />
+                            <Text style={[styles.activityText, { color: theme.colors.secondaryText }]}>
+                                最長ストリーク <Text style={[styles.activityValue, { color: theme.colors.text }]}>7</Text> 日
                             </Text>
                         </View>
                         <View style={styles.activityRow}>
-                            <View style={styles.activityDot} />
-                            <Text style={styles.activityText}>
-                                お気に入りの時間帯 <Text style={styles.activityValue}>午後</Text>
+                            <View style={[styles.activityDot, { backgroundColor: theme.colors.primary }]} />
+                            <Text style={[styles.activityText, { color: theme.colors.secondaryText }]}>
+                                お気に入りの時間帯 <Text style={[styles.activityValue, { color: theme.colors.text }]}>午後</Text>
                             </Text>
                         </View>
                     </View>
@@ -153,15 +171,15 @@ const InsightScreen = ({ navigation }) => {
                 {/* カテゴリー分析 */}
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
-                        <Ionicons name="pie-chart" size={20} color="#007AFF" />
-                        <Text style={styles.sectionTitle}>カテゴリー別記録</Text>
+                        <Ionicons name="pie-chart" size={20} color={theme.colors.primary} />
+                        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>カテゴリー別記録</Text>
                     </View>
-                    <View style={styles.categoryCard}>
-                        <CategoryBar label="Café" count={Math.round(stats.totalRecords * 0.3)} total={stats.totalRecords} color="#FF6B6B" icon="cafe" />
-                        <CategoryBar label="Film" count={Math.round(stats.totalRecords * 0.25)} total={stats.totalRecords} color="#4ECDC4" icon="film" />
-                        <CategoryBar label="Daily" count={Math.round(stats.totalRecords * 0.2)} total={stats.totalRecords} color="#FFD93D" icon="calendar" />
-                        <CategoryBar label="Travel" count={Math.round(stats.totalRecords * 0.15)} total={stats.totalRecords} color="#95E1D3" icon="airplane" />
-                        <CategoryBar label="Other" count={Math.round(stats.totalRecords * 0.1)} total={stats.totalRecords} color="#C7CEEA" icon="ellipsis-horizontal" />
+                    <View style={[styles.categoryCard, { backgroundColor: theme.colors.card }]}>
+                        <CategoryBar label="Café" count={Math.round(stats.totalRecords * 0.3)} total={stats.totalRecords} color="#FF6B6B" icon="cafe" theme={theme} />
+                        <CategoryBar label="Film" count={Math.round(stats.totalRecords * 0.25)} total={stats.totalRecords} color="#4ECDC4" icon="film" theme={theme} />
+                        <CategoryBar label="Daily" count={Math.round(stats.totalRecords * 0.2)} total={stats.totalRecords} color="#FFD93D" icon="calendar" theme={theme} />
+                        <CategoryBar label="Travel" count={Math.round(stats.totalRecords * 0.15)} total={stats.totalRecords} color="#95E1D3" icon="airplane" theme={theme} />
+                        <CategoryBar label="Other" count={Math.round(stats.totalRecords * 0.1)} total={stats.totalRecords} color="#C7CEEA" icon="ellipsis-horizontal" theme={theme} />
                     </View>
                 </View>
 
@@ -171,7 +189,7 @@ const InsightScreen = ({ navigation }) => {
 };
 
 // カテゴリーバーコンポーネント
-const CategoryBar = ({ label, count, total, color, icon }) => {
+const CategoryBar = ({ label, count, total, color, icon, theme }) => {
     const percentage = total > 0 ? (count / total) * 100 : 0;
     
     return (
@@ -179,11 +197,11 @@ const CategoryBar = ({ label, count, total, color, icon }) => {
             <View style={styles.categoryBarHeader}>
                 <View style={styles.categoryBarLabel}>
                     <Ionicons name={icon} size={16} color={color} />
-                    <Text style={styles.categoryBarText}>{label}</Text>
+                    <Text style={[styles.categoryBarText, { color: theme.colors.text }]}>{label}</Text>
                 </View>
-                <Text style={styles.categoryBarCount}>{count}</Text>
+                <Text style={[styles.categoryBarCount, { color: theme.colors.secondaryText }]}>{count}</Text>
             </View>
-            <View style={styles.categoryBarTrack}>
+            <View style={[styles.categoryBarTrack, { backgroundColor: theme.colors.border }]}>
                 <View 
                     style={[
                         styles.categoryBarFill, 
@@ -198,7 +216,6 @@ const CategoryBar = ({ label, count, total, color, icon }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
     },
     topNavBar: {
         flexDirection: 'row',
@@ -206,9 +223,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingVertical: 12,
-        backgroundColor: '#fff',
         borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
     },
     backButton: {
         padding: 4,
@@ -217,14 +232,12 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#333',
     },
     placeholder: {
         width: 32,
     },
     scrollView: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
     },
     // 統計グリッド
     statsGrid: {
@@ -237,7 +250,6 @@ const styles = StyleSheet.create({
     },
     statCard: {
         width: (width - 36) / 2,
-        backgroundColor: '#fff',
         borderRadius: 16,
         padding: 20,
         marginBottom: 12,
@@ -258,12 +270,10 @@ const styles = StyleSheet.create({
     statValue: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: '#333',
         marginBottom: 4,
     },
     statLabel: {
         fontSize: 12,
-        color: '#666',
     },
     // セクション
     section: {
@@ -278,12 +288,10 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
         marginLeft: 8,
     },
     // アクティビティカード
     activityCard: {
-        backgroundColor: '#fff',
         borderRadius: 16,
         padding: 20,
         shadowColor: "#000",
@@ -301,20 +309,16 @@ const styles = StyleSheet.create({
         width: 8,
         height: 8,
         borderRadius: 4,
-        backgroundColor: '#007AFF',
         marginRight: 12,
     },
     activityText: {
         fontSize: 15,
-        color: '#666',
     },
     activityValue: {
         fontWeight: 'bold',
-        color: '#333',
     },
     // カテゴリーカード
     categoryCard: {
-        backgroundColor: '#fff',
         borderRadius: 16,
         padding: 20,
         shadowColor: "#000",
@@ -338,18 +342,15 @@ const styles = StyleSheet.create({
     },
     categoryBarText: {
         fontSize: 14,
-        color: '#333',
         fontWeight: '500',
         marginLeft: 8,
     },
     categoryBarCount: {
         fontSize: 14,
-        color: '#666',
         fontWeight: 'bold',
     },
     categoryBarTrack: {
         height: 8,
-        backgroundColor: '#f0f0f0',
         borderRadius: 4,
         overflow: 'hidden',
     },

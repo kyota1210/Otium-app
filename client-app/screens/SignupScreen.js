@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { StyleSheet, Text, View, TextInput, Button, Alert, TouchableOpacity } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 export default function SignupScreen({ navigation }) {
     const [email, setEmail] = useState('');
@@ -9,6 +10,7 @@ export default function SignupScreen({ navigation }) {
     const [loading, setLoading] = useState(false);
     
     const { authContext } = useContext(AuthContext);
+    const { theme } = useTheme();
 
     const handleSignup = async () => {
         if (!email || !password) {
@@ -30,17 +32,50 @@ export default function SignupScreen({ navigation }) {
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>新規ユーザー登録</Text>
+        <View style={[styles.container, { backgroundColor: theme.colors.secondaryBackground }]}>
+            <Text style={[styles.title, { color: theme.colors.text }]}>新規ユーザー登録</Text>
             
-            <TextInput style={styles.input} placeholder="メールアドレス" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none"/>
-            <TextInput style={styles.input} placeholder="表示名（オプション）" value={displayName} onChangeText={setDisplayName}/>
-            <TextInput style={styles.input} placeholder="パスワード" value={password} onChangeText={setPassword} secureTextEntry/>
+            <TextInput 
+                style={[styles.input, {
+                    backgroundColor: theme.colors.background,
+                    borderColor: theme.colors.border,
+                    color: theme.colors.text
+                }]}
+                placeholder="メールアドレス" 
+                placeholderTextColor={theme.colors.inactive}
+                value={email} 
+                onChangeText={setEmail} 
+                keyboardType="email-address" 
+                autoCapitalize="none"
+            />
+            <TextInput 
+                style={[styles.input, {
+                    backgroundColor: theme.colors.background,
+                    borderColor: theme.colors.border,
+                    color: theme.colors.text
+                }]}
+                placeholder="表示名（オプション）" 
+                placeholderTextColor={theme.colors.inactive}
+                value={displayName} 
+                onChangeText={setDisplayName}
+            />
+            <TextInput 
+                style={[styles.input, {
+                    backgroundColor: theme.colors.background,
+                    borderColor: theme.colors.border,
+                    color: theme.colors.text
+                }]}
+                placeholder="パスワード" 
+                placeholderTextColor={theme.colors.inactive}
+                value={password} 
+                onChangeText={setPassword} 
+                secureTextEntry
+            />
 
-            <Button title={loading ? "登録中..." : "サインアップ"} onPress={handleSignup} disabled={loading}/>
+            <Button title={loading ? "登録中..." : "サインアップ"} onPress={handleSignup} disabled={loading} color={theme.colors.primary}/>
 
             <TouchableOpacity style={styles.backLink} onPress={() => navigation.goBack()}>
-                <Text style={styles.backText}>ログイン画面に戻る</Text>
+                <Text style={[styles.backText, { color: theme.colors.primary }]}>ログイン画面に戻る</Text>
             </TouchableOpacity>
         </View>
     );
@@ -52,20 +87,16 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         padding: 20,
-        backgroundColor: '#f5f5f5',
     },
     title: {
         fontSize: 32,
         fontWeight: 'bold',
         marginBottom: 40,
-        color: '#333',
     },
     input: {
         width: '100%',
         height: 50,
-        backgroundColor: '#fff',
         borderWidth: 1,
-        borderColor: '#ddd',
         borderRadius: 8,
         paddingHorizontal: 15,
         marginBottom: 15,
@@ -75,7 +106,6 @@ const styles = StyleSheet.create({
         marginTop: 20,
     },
     backText: {
-        color: '#007AFF',
         fontSize: 16,
         textDecorationLine: 'underline',
     },

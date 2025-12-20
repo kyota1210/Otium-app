@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '../context/ThemeContext';
 
 const PremiumPlanScreen = ({ navigation }) => {
     const [isPremium, setIsPremium] = useState(false);
+    const { theme } = useTheme();
 
     const handleSubscribe = () => {
         Alert.alert(
@@ -44,65 +46,73 @@ const PremiumPlanScreen = ({ navigation }) => {
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
             {/* トップナビゲーションバー */}
-            <View style={styles.topNavBar}>
+            <View style={[styles.topNavBar, {
+                backgroundColor: theme.colors.background,
+                borderBottomColor: theme.colors.border
+            }]}>
                 <TouchableOpacity 
                     style={styles.backButton}
                     onPress={() => navigation.goBack()}
                 >
-                    <Ionicons name="arrow-back" size={24} color="#333" />
+                    <Ionicons name="arrow-back" size={24} color={theme.colors.icon} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>プレミアムプラン</Text>
+                <Text style={[styles.headerTitle, { color: theme.colors.text }]}>プレミアムプラン</Text>
                 <View style={styles.placeholder} />
             </View>
 
-            <ScrollView style={styles.scrollView}>
+            <ScrollView style={[styles.scrollView, { backgroundColor: theme.colors.secondaryBackground }]}>
                 {/* プランステータス */}
-                <View style={styles.statusCard}>
+                <View style={[styles.statusCard, { backgroundColor: theme.colors.card }]}>
                     <View style={styles.statusIconContainer}>
                         <Ionicons 
                             name={isPremium ? "diamond" : "diamond-outline"} 
                             size={48} 
-                            color={isPremium ? "#FFD700" : "#999"} 
+                            color={isPremium ? "#FFD700" : theme.colors.inactive} 
                         />
                     </View>
-                    <Text style={styles.statusTitle}>
+                    <Text style={[styles.statusTitle, { color: theme.colors.text }]}>
                         {isPremium ? 'プレミアムプラン利用中' : 'フリープラン'}
                     </Text>
-                    <Text style={styles.statusSubtitle}>
+                    <Text style={[styles.statusSubtitle, { color: theme.colors.secondaryText }]}>
                         {isPremium ? '次回更新日: 2025/01/20' : '無料でご利用いただけます'}
                     </Text>
                 </View>
 
                 {/* プレミアム機能 */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>プレミアム機能</Text>
-                    <View style={styles.featureCard}>
+                    <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>プレミアム機能</Text>
+                    <View style={[styles.featureCard, { backgroundColor: theme.colors.card }]}>
                         <FeatureItem 
                             icon="cloud-upload" 
                             title="無制限のクラウドストレージ" 
                             description="すべての写真と動画をクラウドに保存"
+                            theme={theme}
                         />
                         <FeatureItem 
                             icon="sparkles" 
                             title="高度なフィルター機能" 
                             description="プロフェッショナルな編集ツール"
+                            theme={theme}
                         />
                         <FeatureItem 
                             icon="stats-chart" 
                             title="詳細な統計とインサイト" 
                             description="記録の傾向を詳しく分析"
+                            theme={theme}
                         />
                         <FeatureItem 
                             icon="notifications-off" 
                             title="広告なし" 
                             description="快適な閲覧体験"
+                            theme={theme}
                         />
                         <FeatureItem 
                             icon="people" 
                             title="優先サポート" 
                             description="専門スタッフによる迅速なサポート"
+                            theme={theme}
                         />
                     </View>
                 </View>
@@ -110,13 +120,13 @@ const PremiumPlanScreen = ({ navigation }) => {
                 {/* 価格 */}
                 {!isPremium && (
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>料金プラン</Text>
-                        <View style={styles.priceCard}>
+                        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>料金プラン</Text>
+                        <View style={[styles.priceCard, { backgroundColor: theme.colors.card }]}>
                             <View style={styles.priceRow}>
-                                <Text style={styles.priceAmount}>¥980</Text>
-                                <Text style={styles.priceUnit}>/月</Text>
+                                <Text style={[styles.priceAmount, { color: theme.colors.primary }]}>¥980</Text>
+                                <Text style={[styles.priceUnit, { color: theme.colors.secondaryText }]}>/月</Text>
                             </View>
-                            <Text style={styles.priceNote}>いつでもキャンセル可能</Text>
+                            <Text style={[styles.priceNote, { color: theme.colors.inactive }]}>いつでもキャンセル可能</Text>
                         </View>
                     </View>
                 )}
@@ -125,7 +135,7 @@ const PremiumPlanScreen = ({ navigation }) => {
                 <View style={styles.buttonSection}>
                     {!isPremium ? (
                         <TouchableOpacity 
-                            style={styles.subscribeButton}
+                            style={[styles.subscribeButton, { backgroundColor: theme.colors.primary }]}
                             onPress={handleSubscribe}
                         >
                             <Ionicons name="diamond" size={20} color="#fff" />
@@ -133,7 +143,10 @@ const PremiumPlanScreen = ({ navigation }) => {
                         </TouchableOpacity>
                     ) : (
                         <TouchableOpacity 
-                            style={styles.cancelButton}
+                            style={[styles.cancelButton, { 
+                                backgroundColor: theme.colors.card,
+                                borderColor: '#FF3B30'
+                            }]}
                             onPress={handleCancel}
                         >
                             <Text style={styles.cancelButtonText}>プランを解約</Text>
@@ -145,14 +158,16 @@ const PremiumPlanScreen = ({ navigation }) => {
     );
 };
 
-const FeatureItem = ({ icon, title, description }) => (
-    <View style={styles.featureItem}>
-        <View style={styles.featureIconContainer}>
-            <Ionicons name={icon} size={24} color="#007AFF" />
+const FeatureItem = ({ icon, title, description, theme }) => (
+    <View style={[styles.featureItem, { borderBottomColor: theme.colors.border }]}>
+        <View style={[styles.featureIconContainer, { 
+            backgroundColor: theme.isDark ? '#1a3a5c' : '#E8F4FF' 
+        }]}>
+            <Ionicons name={icon} size={24} color={theme.colors.primary} />
         </View>
         <View style={styles.featureTextContainer}>
-            <Text style={styles.featureTitle}>{title}</Text>
-            <Text style={styles.featureDescription}>{description}</Text>
+            <Text style={[styles.featureTitle, { color: theme.colors.text }]}>{title}</Text>
+            <Text style={[styles.featureDescription, { color: theme.colors.secondaryText }]}>{description}</Text>
         </View>
         <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
     </View>
@@ -161,7 +176,6 @@ const FeatureItem = ({ icon, title, description }) => (
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
     },
     topNavBar: {
         flexDirection: 'row',
@@ -169,9 +183,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingVertical: 12,
-        backgroundColor: '#fff',
         borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
     },
     backButton: {
         padding: 4,
@@ -179,17 +191,14 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
     },
     placeholder: {
         width: 32,
     },
     scrollView: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
     },
     statusCard: {
-        backgroundColor: '#fff',
         alignItems: 'center',
         paddingVertical: 40,
         marginTop: 20,
@@ -207,12 +216,10 @@ const styles = StyleSheet.create({
     statusTitle: {
         fontSize: 22,
         fontWeight: 'bold',
-        color: '#333',
         marginBottom: 8,
     },
     statusSubtitle: {
         fontSize: 14,
-        color: '#666',
     },
     section: {
         marginTop: 24,
@@ -221,11 +228,9 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
         marginBottom: 12,
     },
     featureCard: {
-        backgroundColor: '#fff',
         borderRadius: 16,
         padding: 16,
         shadowColor: "#000",
@@ -239,13 +244,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
     },
     featureIconContainer: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#E8F4FF',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
@@ -256,15 +259,12 @@ const styles = StyleSheet.create({
     featureTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#333',
         marginBottom: 4,
     },
     featureDescription: {
         fontSize: 13,
-        color: '#666',
     },
     priceCard: {
-        backgroundColor: '#fff',
         borderRadius: 16,
         padding: 24,
         alignItems: 'center',
@@ -282,16 +282,13 @@ const styles = StyleSheet.create({
     priceAmount: {
         fontSize: 48,
         fontWeight: 'bold',
-        color: '#007AFF',
     },
     priceUnit: {
         fontSize: 20,
-        color: '#666',
         marginLeft: 4,
     },
     priceNote: {
         fontSize: 14,
-        color: '#999',
     },
     buttonSection: {
         paddingHorizontal: 16,
@@ -299,13 +296,12 @@ const styles = StyleSheet.create({
         paddingBottom: 40,
     },
     subscribeButton: {
-        backgroundColor: '#007AFF',
         borderRadius: 12,
         paddingVertical: 16,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: "#007AFF",
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
@@ -318,11 +314,9 @@ const styles = StyleSheet.create({
         marginLeft: 8,
     },
     cancelButton: {
-        backgroundColor: '#fff',
         borderRadius: 12,
         paddingVertical: 16,
         borderWidth: 1,
-        borderColor: '#FF3B30',
     },
     cancelButtonText: {
         fontSize: 16,

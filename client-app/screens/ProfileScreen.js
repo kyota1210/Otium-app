@@ -2,10 +2,12 @@ import React, { useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ProfileScreen = ({ navigation }) => {
     const { userInfo, authContext } = useContext(AuthContext);
+    const { theme } = useTheme();
 
     const handleLogout = () => {
         Alert.alert(
@@ -29,101 +31,107 @@ const ProfileScreen = ({ navigation }) => {
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
             {/* トップナビゲーションバー */}
-            <View style={styles.topNavBar}>
-                <Text style={styles.headerTitle}>設定</Text>
+            <View style={[styles.topNavBar, { 
+                backgroundColor: theme.colors.background,
+                borderBottomColor: theme.colors.border 
+            }]}>
+                <Text style={[styles.headerTitle, { color: theme.colors.text }]}>設定</Text>
             </View>
 
-            <ScrollView style={styles.scrollView}>
+            <ScrollView style={[styles.scrollView, { backgroundColor: theme.colors.secondaryBackground }]}>
                 {/* アカウント設定セクション */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>アカウント設定</Text>
-                    <View style={styles.menuSection}>
+                    <Text style={[styles.sectionTitle, { color: theme.colors.secondaryText }]}>アカウント設定</Text>
+                    <View style={[styles.menuSection, { backgroundColor: theme.colors.card }]}>
                         <TouchableOpacity 
-                            style={styles.menuItem}
+                            style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}
                             onPress={() => navigation.navigate('LoginInfo')}
                         >
-                            <Ionicons name="key-outline" size={24} color="#333" />
-                            <Text style={styles.menuText}>ログイン情報の変更</Text>
-                            <Ionicons name="chevron-forward" size={24} color="#999" />
+                            <Ionicons name="key-outline" size={24} color={theme.colors.icon} />
+                            <Text style={[styles.menuText, { color: theme.colors.text }]}>ログイン情報の変更</Text>
+                            <Ionicons name="chevron-forward" size={24} color={theme.colors.inactive} />
                         </TouchableOpacity>
                         <TouchableOpacity 
-                            style={styles.menuItem}
+                            style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}
                             onPress={() => navigation.navigate('PremiumPlan')}
                         >
-                            <Ionicons name="diamond-outline" size={24} color="#333" />
-                            <Text style={styles.menuText}>プレミアムプランの設定</Text>
-                            <Ionicons name="chevron-forward" size={24} color="#999" />
+                            <Ionicons name="diamond-outline" size={24} color={theme.colors.icon} />
+                            <Text style={[styles.menuText, { color: theme.colors.text }]}>プレミアムプランの設定</Text>
+                            <Ionicons name="chevron-forward" size={24} color={theme.colors.inactive} />
                         </TouchableOpacity>
                     </View>
                 </View>
 
                 {/* Otium設定セクション */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Otium設定</Text>
-                    <View style={styles.menuSection}>
+                    <Text style={[styles.sectionTitle, { color: theme.colors.secondaryText }]}>Otium設定</Text>
+                    <View style={[styles.menuSection, { backgroundColor: theme.colors.card }]}>
                         <TouchableOpacity 
-                            style={styles.menuItem}
+                            style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}
                             onPress={() => navigation.navigate('CategoryManagement')}
                         >
-                            <Ionicons name="list-outline" size={24} color="#333" />
-                            <Text style={styles.menuText}>カテゴリー管理</Text>
-                            <Ionicons name="chevron-forward" size={24} color="#999" />
+                            <Ionicons name="list-outline" size={24} color={theme.colors.icon} />
+                            <Text style={[styles.menuText, { color: theme.colors.text }]}>カテゴリー管理</Text>
+                            <Ionicons name="chevron-forward" size={24} color={theme.colors.inactive} />
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.menuItem}>
-                            <Ionicons name="options-outline" size={24} color="#333" />
-                            <Text style={styles.menuText}>表示設定</Text>
-                            <Ionicons name="chevron-forward" size={24} color="#999" />
+                        <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}>
+                            <Ionicons name="options-outline" size={24} color={theme.colors.icon} />
+                            <Text style={[styles.menuText, { color: theme.colors.text }]}>表示設定</Text>
+                            <Ionicons name="chevron-forward" size={24} color={theme.colors.inactive} />
                         </TouchableOpacity>
                     </View>
                 </View>
 
                 {/* アプリ設定セクション */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>アプリ設定</Text>
-                    <View style={styles.menuSection}>
-                        <TouchableOpacity style={styles.menuItem}>
-                            <Ionicons name="notifications-outline" size={24} color="#333" />
-                            <Text style={styles.menuText}>通知設定</Text>
-                            <Ionicons name="chevron-forward" size={24} color="#999" />
+                    <Text style={[styles.sectionTitle, { color: theme.colors.secondaryText }]}>アプリ設定</Text>
+                    <View style={[styles.menuSection, { backgroundColor: theme.colors.card }]}>
+                        <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}>
+                            <Ionicons name="notifications-outline" size={24} color={theme.colors.icon} />
+                            <Text style={[styles.menuText, { color: theme.colors.text }]}>通知設定</Text>
+                            <Ionicons name="chevron-forward" size={24} color={theme.colors.inactive} />
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.menuItem}>
-                            <Ionicons name="language-outline" size={24} color="#333" />
-                            <Text style={styles.menuText}>言語設定</Text>
-                            <Ionicons name="chevron-forward" size={24} color="#999" />
+                        <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}>
+                            <Ionicons name="language-outline" size={24} color={theme.colors.icon} />
+                            <Text style={[styles.menuText, { color: theme.colors.text }]}>言語設定</Text>
+                            <Ionicons name="chevron-forward" size={24} color={theme.colors.inactive} />
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.menuItem}>
-                            <Ionicons name="color-palette-outline" size={24} color="#333" />
-                            <Text style={styles.menuText}>テーマ</Text>
-                            <Ionicons name="chevron-forward" size={24} color="#999" />
+                        <TouchableOpacity 
+                            style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}
+                            onPress={() => navigation.navigate('ThemeSetting')}
+                        >
+                            <Ionicons name="color-palette-outline" size={24} color={theme.colors.icon} />
+                            <Text style={[styles.menuText, { color: theme.colors.text }]}>テーマ</Text>
+                            <Ionicons name="chevron-forward" size={24} color={theme.colors.inactive} />
                         </TouchableOpacity>
                     </View>
                 </View>
 
                 {/* その他セクション */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>その他</Text>
-                    <View style={styles.menuSection}>
-                        <TouchableOpacity style={styles.menuItem}>
-                            <Ionicons name="help-circle-outline" size={24} color="#333" />
-                            <Text style={styles.menuText}>ヘルプ</Text>
-                            <Ionicons name="chevron-forward" size={24} color="#999" />
+                    <Text style={[styles.sectionTitle, { color: theme.colors.secondaryText }]}>その他</Text>
+                    <View style={[styles.menuSection, { backgroundColor: theme.colors.card }]}>
+                        <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}>
+                            <Ionicons name="help-circle-outline" size={24} color={theme.colors.icon} />
+                            <Text style={[styles.menuText, { color: theme.colors.text }]}>ヘルプ</Text>
+                            <Ionicons name="chevron-forward" size={24} color={theme.colors.inactive} />
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.menuItem}>
-                            <Ionicons name="information-circle-outline" size={24} color="#333" />
-                            <Text style={styles.menuText}>アプリについて</Text>
-                            <Ionicons name="chevron-forward" size={24} color="#999" />
+                        <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}>
+                            <Ionicons name="information-circle-outline" size={24} color={theme.colors.icon} />
+                            <Text style={[styles.menuText, { color: theme.colors.text }]}>アプリについて</Text>
+                            <Ionicons name="chevron-forward" size={24} color={theme.colors.inactive} />
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.menuItem}>
-                            <Ionicons name="document-text-outline" size={24} color="#333" />
-                            <Text style={styles.menuText}>利用規約</Text>
-                            <Ionicons name="chevron-forward" size={24} color="#999" />
+                        <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}>
+                            <Ionicons name="document-text-outline" size={24} color={theme.colors.icon} />
+                            <Text style={[styles.menuText, { color: theme.colors.text }]}>利用規約</Text>
+                            <Ionicons name="chevron-forward" size={24} color={theme.colors.inactive} />
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.menuItem}>
-                            <Ionicons name="shield-checkmark-outline" size={24} color="#333" />
-                            <Text style={styles.menuText}>プライバシーポリシー</Text>
-                            <Ionicons name="chevron-forward" size={24} color="#999" />
+                        <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}>
+                            <Ionicons name="shield-checkmark-outline" size={24} color={theme.colors.icon} />
+                            <Text style={[styles.menuText, { color: theme.colors.text }]}>プライバシーポリシー</Text>
+                            <Ionicons name="chevron-forward" size={24} color={theme.colors.inactive} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -147,7 +155,6 @@ const ProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
     },
     topNavBar: {
         flexDirection: 'row',
@@ -155,18 +162,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingVertical: 12,
-        backgroundColor: '#fff',
         borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
     },
     headerTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#333',
     },
     scrollView: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
     },
     section: {
         marginTop: 20,
@@ -174,12 +177,10 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#666',
         paddingHorizontal: 20,
         paddingBottom: 8,
     },
     menuSection: {
-        backgroundColor: '#fff',
         paddingVertical: 0,
     },
     menuItem: {
@@ -197,7 +198,6 @@ const styles = StyleSheet.create({
     menuText: {
         flex: 1,
         fontSize: 16,
-        color: '#333',
         marginLeft: 12,
     },
     menuSubText: {
